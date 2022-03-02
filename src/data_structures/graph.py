@@ -4,6 +4,7 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 from data_structures.merge_find_set import MergeFindSet
+from tqdm import tqdm
 
 
 class Node:
@@ -56,24 +57,17 @@ class Graph:
         self.A = np.zeros((len(self.nodes), len(self.nodes)))
         for edge in edges:
             self.A[edge.start.id, edge.end.id] += edge.weight
-        
-        self.D = np.zeros((len(self.nodes), len(self.nodes)))
-        for n in self.nodes:
-            self.D[n.id, n.id] = np.sum(self.A[n.id, :])   # The degree of the node.
-            assert self.D[n.id, n.id] > 0.0001
-        self.D_inv_sqrt = np.zeros((len(self.nodes), len(self.nodes)))
-        for n in self.nodes:
-            self.D_inv_sqrt[n.id, n.id] = 1 / np.sqrt(np.sum([self.A[n.id: ]]))
-        self.D_inv = np.zeros((len(self.nodes), len(self.nodes)))
-        for n in self.nodes:
-            self.D_inv[n.id, n.id] = 1.0 / np.sum([e.weight for e in self.adj_list[n.id]])   # The degree of the node.
+        # Initialize D
+        self.D = np.diag(np.sum(self.A, axis=1))
+        # Initialize D^{-0.5}
+        self.D_inv_sqrt = np.diag(1.0 / np.sqrt(np.sum(self.A, axis=1)))
+        # Initialize D^{-1}
+        self.D_inv = np.diag(1.0 / np.sum(self.A, axis=1))
         # Laplacian L = I - D_inv @ A
         self.L = np.eye(len(self.nodes)) - self.D_inv @ self.A
-        
         self.M = 1/2 * (np.eye(len(self.nodes)) + self.D_inv @ self.A)
-        for i in range(len(self.M)):
-            # Assert that every row sums up to 1.0
-            assert np.abs(np.sum(self.M[i, :]) - 1.0) < 0.0001
+        # Assert that every row sums up to 1.0
+        assert np.sum([np.abs(np.sum(self.M[i, :]) - 1.0) < 0.0001 for i in range(len(self.nodes))]) == len(self.nodes)
 
     def get_largest_cc(self) -> Graph:
         """
@@ -144,16 +138,18 @@ class Graph:
         """
         # Now that we have the Laplacian, we can perform the lambda 
         eigval, eigvect = np.linalg.eig(self.L)
+        print("Compute eigevals")
         second_eigenvect = eigvect[:, 1]
         # Make a list of (node, eigenvector_entry)
         nodes_eigvect_val = [(n, v) for (n, v) in zip(self.nodes, second_eigenvect)]
         # Sort by the eigenvector value
         nodes_eigvect_sorted = sorted(nodes_eigvect_val, key=lambda x: x[1])  
         # Perform the sweep cut.
-        bipartition = [False for i in range(len(self.nodes))]
+        bipartition = np.array([False for i in range(len(self.nodes))])
         best_bipartition = None
         best_conductance = 1.1  # Max value, will always be updated.
-        for i in range(0, len(self.nodes)-1):
+        print("Perform cheeger sweep")
+        for i in tqdm(range(0, len(self.nodes)-1)):
             # Add node i to the bipartition
             bipartition[nodes_eigvect_sorted[i][0].id] = True
             conductance = self.compute_conductance(bipartition)
