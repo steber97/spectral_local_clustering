@@ -1,0 +1,168 @@
+from __future__ import annotations
+
+from typing import List, Tuple
+import numpy as np
+import pandas as pd
+from data_structures.merge_find_set import MergeFindSet
+
+
+class Node:
+    def __init__(self, id, value) -> None:
+        """
+        The id must be an integer, so that it can be easily hashed into a dictionary.
+        """
+        self.id = id
+        self.value = value
+    
+    def __hash__(self) -> int:
+        return int(self.id)
+    
+    def __eq__(self, o: object) -> bool:
+        return int(self.id)
+
+    def __repr__(self):
+        return "Node {}".format(self.id)
+
+
+class Edge:
+    def __init__(self, start: Node, end: Node, weight: float) -> None:
+        self.start = start
+        self.end = end
+        self.weight = weight
+    
+    def __repr__(self):
+        # return "{} -> {} with weight {}".format(self.start.id, self.end.id, self.weight)
+        return "{} -> {}".format(self.start, self.end)
+
+
+class Graph:
+    def __init__(self, nodes: List[Node], edges: List[Edge]):
+        """
+        Nodes ids must be incremental ids.
+        If the graph is unweighted, leave all edge weights to 1 (float value in the tuple).
+        """
+        self.nodes = nodes
+        # Assert ids are unique for the nodes. They must be in range [0, len(nodes)-1]
+        assert len(np.unique([n.id for n in nodes])) == len(nodes) 
+        assert np.max([n.id for n in nodes]) == len(nodes)-1 
+        assert np.min([n.id for n in nodes]) == 0
+        self.edges_list = edges
+        self.adj_list = {}
+        for node in nodes:
+            self.adj_list[node.id] = []
+        for edge in edges:
+            self.adj_list[edge.start.id].append(edge)
+        
+        self.A = np.zeros((len(self.nodes), len(self.nodes)))
+        for edge in edges:
+            self.A[edge.start.id, edge.end.id] += edge.weight
+        
+        self.D = np.zeros((len(self.nodes), len(self.nodes)))
+        for n in self.nodes:
+            self.D[n.id, n.id] = np.sum(self.A[n.id, :])   # The degree of the node.
+            assert self.D[n.id, n.id] > 0.0001
+        self.D_inv_sqrt = np.zeros((len(self.nodes), len(self.nodes)))
+        for n in self.nodes:
+            self.D_inv_sqrt[n.id, n.id] = 1 / np.sqrt(np.sum([self.A[n.id: ]]))
+        self.D_inv = np.zeros((len(self.nodes), len(self.nodes)))
+        for n in self.nodes:
+            self.D_inv[n.id, n.id] = 1.0 / np.sum([e.weight for e in self.adj_list[n.id]])   # The degree of the node.
+        # Laplacian L = I - D_inv @ A
+        self.L = np.eye(len(self.nodes)) - self.D_inv @ self.A
+        
+        self.M = 1/2 * (np.eye(len(self.nodes)) + self.D_inv @ self.A)
+        for i in range(len(self.M)):
+            # Assert that every row sums up to 1.0
+            assert np.abs(np.sum(self.M[i, :]) - 1.0) < 0.0001
+
+    def get_largest_cc(self) -> Graph:
+        """
+        Return the largest CC as a new graph, with new increasing IDs.
+        """
+        nodes_mfs = {}
+        for n in self.nodes:
+            nodes_mfs[n.id] = MergeFindSet(n.id)
+        
+        for node in self.nodes:
+            for edge in self.adj_list[node.id]:
+                nodes_mfs[edge.start.id].merge(nodes_mfs[edge.end.id])
+
+        ccs = [nodes_mfs[n.id].get_root() for n in self.nodes]
+        largest_cc_root = pd.value_counts(ccs).index[0]
+        map_node_old_to_new = {}
+        new_id = 0
+        new_nodes = []
+        for n in self.nodes:
+            if nodes_mfs[n.id].get_root() == largest_cc_root:
+                map_node_old_to_new[n.id] = new_id
+                new_nodes.append(Node(new_id, new_id))
+                new_id += 1
+
+        new_edges = []
+        for n in self.nodes:
+            if nodes_mfs[n.id].get_root() == largest_cc_root:
+                for edge in self.adj_list[n.id]:
+                    edge: Edge
+                    assert edge.start.id in map_node_old_to_new
+                    assert edge.end.id in map_node_old_to_new
+                    new_edges.append(Edge(start=new_nodes[map_node_old_to_new[edge.start.id]],
+                                          end=new_nodes[map_node_old_to_new[edge.end.id]],
+                                          weight=edge.weight))
+        return Graph(nodes=new_nodes, edges=new_edges)
+                
+    def compute_conductance(self, bipartition: List[bool]) -> float:
+        """
+        Given a graph, and a cut encoded as a boolean vector (indexed by the node id),
+        return the conductance of the cut as:
+
+        phi(bipartition) = # edges crossing the cut
+                        ________________________
+                            min(vol(S), vol(V - S)) 
+        """
+        # number of edges crossing the cut
+        assert np.sum(bipartition) > 0 and np.sum(bipartition) != len(bipartition)
+        crossing_edges = 0.0
+        for edge in self.edges_list:
+            if bipartition[edge.start.id] != bipartition[edge.end.id]:
+                crossing_edges += edge.weight
+        vol_S = 0.0
+        vol_S_compl = 0.0
+        for node in self.nodes:
+            if bipartition[node.id]:
+                vol_S += self.D[node.id, node.id]
+            else:
+                vol_S_compl += self.D[node.id, node.id]
+        assert vol_S_compl > 0 and vol_S > 0
+        return crossing_edges / min(vol_S, vol_S_compl)
+
+    def cheeger_sweep(self) -> List[bool]:
+        """
+        Compute the cheeger sweep: 
+        1) get the second eigenvector
+        2) sort the nodes of the graph by their respective eigenvector value
+        3) Perform the sweep: take the cut [v_0, ..., v_k] s.t. the conductance is lowest.
+        """
+        # Now that we have the Laplacian, we can perform the lambda 
+        eigval, eigvect = np.linalg.eig(self.L)
+        second_eigenvect = eigvect[:, 1]
+        # Make a list of (node, eigenvector_entry)
+        nodes_eigvect_val = [(n, v) for (n, v) in zip(self.nodes, second_eigenvect)]
+        # Sort by the eigenvector value
+        nodes_eigvect_sorted = sorted(nodes_eigvect_val, key=lambda x: x[1])  
+        # Perform the sweep cut.
+        bipartition = [False for i in range(len(self.nodes))]
+        best_bipartition = None
+        best_conductance = 1.1  # Max value, will always be updated.
+        for i in range(0, len(self.nodes)-1):
+            # Add node i to the bipartition
+            bipartition[nodes_eigvect_sorted[i][0].id] = True
+            conductance = self.compute_conductance(bipartition)
+            if conductance < best_conductance:
+                # Found a better cut, update the best bipartition
+                best_bipartition = bipartition.copy()
+                best_conductance = conductance
+        print("Best conductance: {}".format(best_conductance))
+        # Assert that cheeger inequality is correct
+        assert best_conductance <= np.sqrt(eigval[1] * 2.0)
+        assert eigval[1]/2.0 <= best_conductance
+        return best_bipartition
