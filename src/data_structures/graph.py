@@ -169,12 +169,13 @@ class Graph:
                 if i != node.id:
                     if bipartition[i] != bipartition[node.id]:
                         # Add incoming and outcoming edges from node.
-                        edges_crossing += (self.A[i, node.id] + self.A[node.id, i])
+                        edges_crossing += self.A[node.id, i]
                     else:
                         # Remove incoming and outcoming edges from node.
-                        edges_crossing -= (self.A[i, node.id] + self.A[node.id, i])
+                        edges_crossing -= self.A[node.id, i]
                 
             conductance_online = edges_crossing / min(volume_S, volume_S_compl)
+            assert conductance_online <= 1
             if conductance_online < best_conductance:
                 # Found a better cut, update the best bipartition
                 best_bipartition = bipartition.copy()
