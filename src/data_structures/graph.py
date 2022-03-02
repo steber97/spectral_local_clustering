@@ -1,4 +1,5 @@
 from __future__ import annotations
+from re import A
 
 from typing import List, Tuple
 import numpy as np
@@ -66,9 +67,9 @@ class Graph:
         self.D_inv = np.diag(1.0 / np.sum(self.A, axis=1))
         # Laplacian L = I - D_inv @ A
         self.L = np.eye(len(self.nodes)) - self.D_inv @ self.A
-        self.M = 1/2 * (np.eye(len(self.nodes)) + self.D_inv @ self.A)
-        # Assert that every row sums up to 1.0
-        assert np.sum([np.abs(np.sum(self.M[i, :]) - 1.0) < 0.0001 for i in range(len(self.nodes))]) == len(self.nodes)
+        self.M = 1/2 * (np.eye(len(self.nodes)) + self.A @ self.D_inv)
+        # Assert that every column sums up to 1.0
+        assert np.sum([np.abs(np.sum(self.M[:, i]) - 1.0) < 0.0001 for i in range(len(self.nodes))]) == len(self.nodes)
 
     def get_largest_cc(self) -> Graph:
         """
@@ -168,10 +169,10 @@ class Graph:
             for i in range(len(self.nodes)):
                 if i != node.id:
                     if bipartition[i] != bipartition[node.id]:
-                        # Add incoming and outcoming edges from node.
+                        # Add outcoming edges from node.
                         edges_crossing += self.A[node.id, i]
                     else:
-                        # Remove incoming and outcoming edges from node.
+                        # Remove outcoming edges from node.
                         edges_crossing -= self.A[node.id, i]
                 
             conductance_online = edges_crossing / min(volume_S, volume_S_compl)
@@ -182,6 +183,7 @@ class Graph:
                 best_conductance = conductance_online
         print("Best conductance: {}".format(best_conductance))
         # Assert that cheeger inequality is correct
+        print("Second eigenvalue: {}".format(eigval[1]))
         assert best_conductance <= np.sqrt(eigval[1] * 2.0)
         assert eigval[1]/2.0 <= best_conductance
         return best_bipartition
