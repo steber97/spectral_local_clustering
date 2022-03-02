@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from data_structures.merge_find_set import MergeFindSet
 from tqdm import tqdm
+import time
 
 
 class Node:
@@ -137,8 +138,9 @@ class Graph:
         3) Perform the sweep: take the cut [v_0, ..., v_k] s.t. the conductance is lowest.
         """
         # Now that we have the Laplacian, we can perform the lambda 
+        start_time = time.time()
         eigval, eigvect = np.linalg.eig(self.L)
-        print("Compute eigevals")
+        print("Compute eigevals in {} seconds".format(time.time() - start_time))
         second_eigenvect = eigvect[:, 1]
         # Make a list of (node, eigenvector_entry)
         nodes_eigvect_val = [(n, v) for (n, v) in zip(self.nodes, second_eigenvect)]
@@ -148,15 +150,35 @@ class Graph:
         bipartition = np.array([False for i in range(len(self.nodes))])
         best_bipartition = None
         best_conductance = 1.1  # Max value, will always be updated.
+        volume_S = 0.0
+        volume_S_compl = np.sum(np.diag(self.D))
+        edges_crossing = 0
         print("Perform cheeger sweep")
+        # Compute the conductance taking into account that, at every iteration,
+        # We only need to edit the in/out-coming edges from node. 
         for i in tqdm(range(0, len(self.nodes)-1)):
             # Add node i to the bipartition
-            bipartition[nodes_eigvect_sorted[i][0].id] = True
-            conductance = self.compute_conductance(bipartition)
-            if conductance < best_conductance:
+            node = nodes_eigvect_sorted[i][0]
+            bipartition[node.id] = True
+            volume_S += self.D[node.id, node.id]
+            volume_S_compl -= self.D[node.id, node.id]
+            # Exactly the same outcome as
+            # conductance = self.compute_conductance(bipartition)
+            # But computed faster.
+            for i in range(len(self.nodes)):
+                if i != node.id:
+                    if bipartition[i] != bipartition[node.id]:
+                        # Add incoming and outcoming edges from node.
+                        edges_crossing += (self.A[i, node.id] + self.A[node.id, i])
+                    else:
+                        # Remove incoming and outcoming edges from node.
+                        edges_crossing -= (self.A[i, node.id] + self.A[node.id, i])
+                
+            conductance_online = edges_crossing / min(volume_S, volume_S_compl)
+            if conductance_online < best_conductance:
                 # Found a better cut, update the best bipartition
                 best_bipartition = bipartition.copy()
-                best_conductance = conductance
+                best_conductance = conductance_online
         print("Best conductance: {}".format(best_conductance))
         # Assert that cheeger inequality is correct
         assert best_conductance <= np.sqrt(eigval[1] * 2.0)
