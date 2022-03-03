@@ -54,7 +54,7 @@ def build_graph(hypergraph: HyperGraph, p: np.array) -> Tuple[Graph, List[Tuple[
         
     # Add self loops.
     for node in nodes:
-        diff = len(hypergraph.adj_list[node.id]) - nodes_edge_counter[node.id] 
+        diff = np.sum((he.weight for he in hypergraph.adj_list[node.id])) - nodes_edge_counter[node.id] 
         if diff != 0:
             assert diff > 0
             edges.append(Edge(node, node, diff))
@@ -79,23 +79,33 @@ if __name__ == "__main__":
 
     dt = 1/4  # any number below 1/2
 
+    np.random.seed(2)
     p0 = [np.random.rand() for i in range(len(hypergraph.hypernodes))]
     p0 /= np.sum(p0)  # So that it sums up to 1.
 
     pt = p0
 
-    for t in range(3):
+    for t in range(1):
     
         # print(pt)
         # print(graph_t.nodes)
         # print(graph_t.edges_list)
+        print(pt)
         graph_t, map_hyperedge_edge_t = build_graph(hypergraph=hypergraph, p=pt)
+        print("Graph_t")
+        print(graph_t)
         p_t_dt = ((1 - dt) * (np.eye(len(graph_t.nodes))) + dt / d * graph_t.A) @ pt
+        Mt = ((1 - dt) * (np.eye(len(graph_t.nodes))) + dt / d * graph_t.A)
+        print("Transition probability matrix")
+        print(Mt)
+        print(p_t_dt)
         graph_t_dt, map_hyperedge_edge_t_dt = build_graph(hypergraph, p_t_dt)
+        print("graph t dt")
+        print(graph_t_dt)
         
         # Here d is a constant, but whatever just for completeness and later 
         # generalization to standard hypergraphs.
-        nodes_sorted = [(p_t_dt[i] / len(graph_t.adj_list[graph_t.nodes[i].id]), graph_t.nodes[i]) for i in range(len(graph_t.nodes))]
+        nodes_sorted = [(p_t_dt[i], graph_t.nodes[i]) for i in range(len(graph_t.nodes))]
         nodes_sorted = sorted(nodes_sorted, key=lambda x: x[0], reverse=True)
         nodes_edge_counter = {}
         for hn in hypergraph.hypernodes:
@@ -113,7 +123,7 @@ if __name__ == "__main__":
                     bipartition[map_hyperedge_edge_t_dt[i][0]] != bipartition[map_hyperedge_edge_t_dt[i][1]]:
                     # The old graph has a cutting edge less!
                     # map_hyperedge has always (min, max)
-                    print("Need to add some edges")
+                    
                     if bipartition[map_hyperedge_edge_t[i][0]] != bipartition[map_hyperedge_edge_t_dt[i][0]]:
                         # add v_min_t -> v_min_t_dt
                         v_min_t = map_hyperedge_edge_t[i][0]
@@ -139,14 +149,17 @@ if __name__ == "__main__":
             # then add the edge in Et (this is always done!)
             v_min_t = map_hyperedge_edge_t[i][0]
             v_max_t = map_hyperedge_edge_t[i][1]
+            nodes_edge_counter[v_max_t] += 1
+            nodes_edge_counter[v_max_t_dt] += 1
             edges_t_tilde.append(
                     Edge(nodes_t_tilde[v_min_t], nodes_t_tilde[v_max_t], 1.0))
             edges_t_tilde.append(
                     Edge(nodes_t_tilde[v_max_t], nodes_t_tilde[v_min_t], 1.0))
         # Add self loops.
         for node in hypergraph.hypernodes:
-            diff = len(hypergraph.adj_list[node.id]) - nodes_edge_counter[node.id] 
-            if diff != 0:
+            diff = np.sum([he.weight for he in hypergraph.adj_list[node.id]]) - nodes_edge_counter[node.id] 
+            print(diff)
+            if abs(diff) > 0.0001:
                 assert diff > 0
                 edges_t_tilde.append(
                         Edge(nodes_t_tilde[node.id], nodes_t_tilde[node.id], diff))
@@ -156,5 +169,12 @@ if __name__ == "__main__":
         # Evolve pt on the new graph tilde.
         pt_dt_tilde = p_t_dt = ((1 - dt) * (
             np.eye(len(graph_t_tilde.nodes))) + dt / d * graph_t_tilde.A) @ pt
+        
+        print(pt_dt_tilde)
+
+        print("graph tilde")
+        print(graph_t_tilde)
+        print("Mt_tilde")
+        print(((1 - dt) * (np.eye(len(graph_t_tilde.nodes))) + dt / d * graph_t_tilde.A))
         pt = pt_dt_tilde
         
