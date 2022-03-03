@@ -35,7 +35,7 @@ class Edge:
     
     def __repr__(self):
         # return "{} -> {} with weight {}".format(self.start.id, self.end.id, self.weight)
-        return "{} -> {}".format(self.start, self.end)
+        return "{} -> {}, weight {}".format(self.start, self.end, self.weight)
 
 
 class Graph:
@@ -70,6 +70,12 @@ class Graph:
         self.M = 1/2 * (np.eye(len(self.nodes)) + self.A @ self.D_inv)
         # Assert that every column sums up to 1.0
         assert np.sum([np.abs(np.sum(self.M[:, i]) - 1.0) < 0.0001 for i in range(len(self.nodes))]) == len(self.nodes)
+
+    def __repr__(self) -> str:
+        res = ""
+        for e in self.edges_list:
+            res += "{} -> {}, weight {}\n".format(e.start, e.end, e.weight)
+        return res
 
     def get_largest_cc(self) -> Graph:
         """
