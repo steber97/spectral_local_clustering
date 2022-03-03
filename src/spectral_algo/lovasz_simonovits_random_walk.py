@@ -52,6 +52,55 @@ def compute_lovasz_simonovits_curve(graph: Graph, probabilities: np.array):
     return x, y
 
 
+
+def compute_cut_lovasz_simonovits_sweep(graph: Graph, probabilities: np.array) -> np.array:
+    """
+    Given a vertex probability vector and a graph, compute a bipartition (sweep)
+    using as vertex sorting quantity the value \rho(u) = p(u)/d(u)
+    If everything goes well, we should be able to find a good conductance cut.
+    """
+    vector_rho = [(n, probabilities[n.id]/graph.D[n.id, n.id]) for n in graph.nodes]
+    rho_sorted = sorted(vector_rho, key=lambda x: (x[1], -x[0].id), reverse=True)
+    bipartition = np.array([False for i in range(len(graph.nodes))])
+    best_bipartition = None
+    best_conductance = 1.1  # Max value, will always be updated.
+    volume_S = 0.0
+    volume_S_compl = np.sum(np.diag(graph.D))
+    edges_crossing = 0
+    print("Perform Lovasz Simonovits sweep")
+    # Compute the conductance taking into account that, at every iteration,
+    # We only need to edit the in/out-coming edges from node. 
+    for i in tqdm(range(0, len(graph.nodes)-1)):
+        # Add node i to the bipartition
+        node = rho_sorted[i][0]
+        bipartition[node.id] = True
+        volume_S += graph.D[node.id, node.id]
+        volume_S_compl -= graph.D[node.id, node.id]
+        # Exactly the same outcome as
+        # conductance = self.compute_conductance(bipartition)
+        # But computed faster.
+        for i in range(len(graph.nodes)):
+            if i != node.id:
+                if bipartition[i] != bipartition[node.id]:
+                    # Add outcoming edges from node.
+                    edges_crossing += graph.A[node.id, i]
+                else:
+                    # Remove outcoming edges from node.
+                    edges_crossing -= graph.A[node.id, i]
+            
+        conductance_online = edges_crossing / min(volume_S, volume_S_compl)
+        assert conductance_online <= 1
+        if conductance_online < best_conductance:
+            # Found a better cut, update the best bipartition
+            best_bipartition = bipartition.copy()
+            best_conductance = conductance_online
+    print("Best conductance: {}".format(best_conductance))
+    # print("Best bipartition: {}".format(best_bipartition))
+    # print(rho_sorted)
+    return best_bipartition
+
+
+
 if __name__ == "__main__":
     read_graph = input_loader_graph(args.dataset)
     graph = read_graph()
@@ -106,6 +155,7 @@ if __name__ == "__main__":
             ) * (mu ** t) + 0.00001) == len(largest_cc_graph.nodes)
         p_t = p_t_1
         assert np.abs(np.sum(p_t_1) - 1.0) < 0.0001
+        partition = compute_cut_lovasz_simonovits_sweep(largest_cc_graph, p_t)
 
         x, y = compute_lovasz_simonovits_curve(largest_cc_graph, p_t)
         ls_curve_per_t.append((x, y))
