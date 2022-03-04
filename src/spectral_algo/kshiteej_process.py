@@ -1,8 +1,9 @@
 from datasets.hypergraphs.d_regular_r_uniform.read_graph import read_graph
 import numpy as np
-from spectral_local_clustering.src.data_structures.hypergraph import HyperEdge, HyperGraph
+from src.data_structures.hypergraph import HyperEdge, HyperGraph
 from src.data_structures.graph import Graph, Node, Edge
 from typing import Tuple, List
+from tqdm import tqdm
 
 
 def compute_r_d(hypergraph: HyperGraph) -> Tuple[float, float]:
@@ -54,7 +55,8 @@ def build_graph(hypergraph: HyperGraph, p: np.array) -> Tuple[Graph, List[Tuple[
         
     # Add self loops.
     for node in nodes:
-        diff = np.sum((he.weight for he in hypergraph.adj_list[node.id])) - nodes_edge_counter[node.id] 
+        diff = np.sum([he.weight for he in hypergraph.adj_list[node.id]]) - nodes_edge_counter[node.id]
+        diff += d  # Add d self loops, to be sure that we have enough to remove! 
         if diff != 0:
             assert diff > 0
             edges.append(Edge(node, node, diff))
@@ -71,10 +73,12 @@ def evolve_graph(graph_t: Graph,
     """
     Add one edge from n, so that the new edge is v_min_t->v_min_t_dt or v_max_t->v_max_t_dt
     """
+    pass
     
 
 if __name__ == "__main__":
-    hypergraph = read_graph("datasets/hypergraphs/d_regular_r_uniform/n_6_d_2_r_4.txt")
+    # hypergraph = read_graph("datasets/hypergraphs/d_regular_r_uniform/n_6_d_2_r_4.txt")
+    hypergraph = read_graph("datasets/hypergraphs/d_regular_r_uniform/n_400_d_10_r_8.txt")
     r, d = compute_r_d(hypergraph)
 
     dt = 1/4  # any number below 1/2
@@ -85,23 +89,24 @@ if __name__ == "__main__":
 
     pt = p0
 
-    for t in range(1):
+    for t in tqdm(range(100)):
     
         # print(pt)
         # print(graph_t.nodes)
         # print(graph_t.edges_list)
-        print(pt)
+        # print(pt)
         graph_t, map_hyperedge_edge_t = build_graph(hypergraph=hypergraph, p=pt)
-        print("Graph_t")
-        print(graph_t)
-        p_t_dt = ((1 - dt) * (np.eye(len(graph_t.nodes))) + dt / d * graph_t.A) @ pt
-        Mt = ((1 - dt) * (np.eye(len(graph_t.nodes))) + dt / d * graph_t.A)
-        print("Transition probability matrix")
-        print(Mt)
-        print(p_t_dt)
+        # print("Graph_t")
+        # print(graph_t)
+        # Multiply d by two since there are d additional self-loops.
+        Mt = ((1 - dt) * (np.eye(len(graph_t.nodes))) + dt / (d*2) * graph_t.A)
+        p_t_dt = Mt @ pt
+        # print("Transition probability matrix")
+        # print(Mt)
+        # print(p_t_dt)
         graph_t_dt, map_hyperedge_edge_t_dt = build_graph(hypergraph, p_t_dt)
-        print("graph t dt")
-        print(graph_t_dt)
+        # print("graph t dt")
+        # print(graph_t_dt)
         
         # Here d is a constant, but whatever just for completeness and later 
         # generalization to standard hypergraphs.
@@ -150,15 +155,15 @@ if __name__ == "__main__":
             v_min_t = map_hyperedge_edge_t[i][0]
             v_max_t = map_hyperedge_edge_t[i][1]
             nodes_edge_counter[v_max_t] += 1
-            nodes_edge_counter[v_max_t_dt] += 1
+            nodes_edge_counter[v_min_t] += 1
             edges_t_tilde.append(
                     Edge(nodes_t_tilde[v_min_t], nodes_t_tilde[v_max_t], 1.0))
             edges_t_tilde.append(
                     Edge(nodes_t_tilde[v_max_t], nodes_t_tilde[v_min_t], 1.0))
         # Add self loops.
         for node in hypergraph.hypernodes:
-            diff = np.sum([he.weight for he in hypergraph.adj_list[node.id]]) - nodes_edge_counter[node.id] 
-            print(diff)
+            diff = np.sum([he.weight for he in hypergraph.adj_list[node.id]]) - nodes_edge_counter[node.id]
+            diff += d  # Add d self loops, just to be sure it is positive! 
             if abs(diff) > 0.0001:
                 assert diff > 0
                 edges_t_tilde.append(
@@ -166,15 +171,14 @@ if __name__ == "__main__":
         
         graph_t_tilde = Graph(nodes_t_tilde, edges_t_tilde)
         
-        # Evolve pt on the new graph tilde.
-        pt_dt_tilde = p_t_dt = ((1 - dt) * (
-            np.eye(len(graph_t_tilde.nodes))) + dt / d * graph_t_tilde.A) @ pt
+        # Evolve pt on the new graph tilde. Multiply d by 2
+        Mt_tilde = ((1 - dt) * (np.eye(len(graph_t_tilde.nodes))) + dt / (d*2) * graph_t_tilde.A)
+        pt_dt_tilde = Mt_tilde @ pt
         
-        print(pt_dt_tilde)
-
-        print("graph tilde")
-        print(graph_t_tilde)
-        print("Mt_tilde")
-        print(((1 - dt) * (np.eye(len(graph_t_tilde.nodes))) + dt / d * graph_t_tilde.A))
+        # print(pt_dt_tilde)
+        # print("graph tilde")
+        # print(graph_t_tilde)
+        # print("Mt_tilde")
+        # print(Mt_tilde)
         pt = pt_dt_tilde
-        
+    print(pt)
