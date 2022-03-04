@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
     pt = p0
 
-    for t in tqdm(range(100)):
+    for t in tqdm(range(1000)):
     
         # print(pt)
         # print(graph_t.nodes)
@@ -118,39 +118,34 @@ if __name__ == "__main__":
         edges_t_tilde = []  
         nodes_t_tilde = [Node(i, i) for i in range(len(hypergraph.hypernodes))]
         for i, he in enumerate(hypergraph.hyperedges):
-            for j in range(1, len(pt) - 1):
-                Sj = [n[1] for n in nodes_sorted][: j]
-                bipartition = [False for i in range(len(graph_t.nodes))]
-                for n in Sj:
-                    bipartition[n.id] = True
+            # The only way for Et to have the same phi as Et_dt is that max_t >= max_t_dt and min_t <= min_t_dt
+            if map_hyperedge_edge_t[i][0] <= map_hyperedge_edge_t_dt[i][0] and map_hyperedge_edge_t[i][1] >= map_hyperedge_edge_t_dt[i][1]:
+                # Nothing to do, add the normal edge at the end.
+                pass
+            else:
+                # add min_t->min_t_dt or max_t->max_t_dt
+                if map_hyperedge_edge_t[i][1] < map_hyperedge_edge_t_dt[i][1]:
+                    # Max t_dt is above max_t, add edge max_t->max_t_dt.
+                    v_max_t = map_hyperedge_edge_t[i][1]
+                    v_max_t_dt = map_hyperedge_edge_t_dt[i][1]
+                    edges_t_tilde.append(
+                            Edge(nodes_t_tilde[v_max_t], nodes_t_tilde[v_max_t_dt], 1.0))
+                    edges_t_tilde.append(
+                            Edge(nodes_t_tilde[v_max_t_dt], nodes_t_tilde[v_max_t], 1.0))
+                    nodes_edge_counter[v_max_t] += 1
+                    nodes_edge_counter[v_max_t_dt] += 1
+                else:
+                    # Min t is above min_t_dt, add edge min_t->min_t_dt
+                    assert map_hyperedge_edge_t[i][0] > map_hyperedge_edge_t_dt[i][0]
+                    v_min_t = map_hyperedge_edge_t[i][0]
+                    v_min_t_dt = map_hyperedge_edge_t_dt[i][0]
+                    edges_t_tilde.append(
+                            Edge(nodes_t_tilde[v_min_t], nodes_t_tilde[v_min_t_dt], 1.0))
+                    edges_t_tilde.append(
+                            Edge(nodes_t_tilde[v_min_t_dt], nodes_t_tilde[v_min_t], 1.0))
+                    nodes_edge_counter[v_min_t] += 1
+                    nodes_edge_counter[v_min_t_dt] += 1
             
-                if bipartition[map_hyperedge_edge_t[i][0]] == bipartition[map_hyperedge_edge_t[i][1]] and \
-                    bipartition[map_hyperedge_edge_t_dt[i][0]] != bipartition[map_hyperedge_edge_t_dt[i][1]]:
-                    # The old graph has a cutting edge less!
-                    # map_hyperedge has always (min, max)
-                    
-                    if bipartition[map_hyperedge_edge_t[i][0]] != bipartition[map_hyperedge_edge_t_dt[i][0]]:
-                        # add v_min_t -> v_min_t_dt
-                        v_min_t = map_hyperedge_edge_t[i][0]
-                        v_min_t_dt = map_hyperedge_edge_t_dt[i][0]
-                        edges_t_tilde.append(
-                                Edge(nodes_t_tilde[v_min_t], nodes_t_tilde[v_min_t_dt], 1.0))
-                        edges_t_tilde.append(
-                                Edge(nodes_t_tilde[v_min_t_dt], nodes_t_tilde[v_min_t], 1.0))
-                        nodes_edge_counter[v_min_t] += 1
-                        nodes_edge_counter[v_min_t_dt] += 1
-                    else:
-                        assert bipartition[map_hyperedge_edge_t[i][1]] != bipartition[map_hyperedge_edge_t_dt[i][1]]
-                        # Add v_max_t -> v_max_t_dt
-                        v_max_t = map_hyperedge_edge_t[i][1]
-                        v_max_t_dt = map_hyperedge_edge_t_dt[i][1]
-                        edges_t_tilde.append(
-                                Edge(nodes_t_tilde[v_max_t], nodes_t_tilde[v_max_t_dt], 1.0))
-                        edges_t_tilde.append(
-                                Edge(nodes_t_tilde[v_max_t_dt], nodes_t_tilde[v_max_t], 1.0))
-                        nodes_edge_counter[v_max_t] += 1
-                        nodes_edge_counter[v_max_t_dt] += 1
-                    break
             # then add the edge in Et (this is always done!)
             v_min_t = map_hyperedge_edge_t[i][0]
             v_max_t = map_hyperedge_edge_t[i][1]
