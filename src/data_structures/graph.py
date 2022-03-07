@@ -193,3 +193,40 @@ class Graph:
         assert best_conductance <= np.sqrt(eigval[1] * 2.0)
         assert eigval[1]/2.0 <= best_conductance
         return best_bipartition
+    
+    def compute_lovasz_simonovits_curve(self, probabilities: np.array):
+        """
+        - \sigma := \sum_{v\in V} d(v)
+        - p := vector probabilities
+        - A := adjacency matrix
+        - d := diagonal of D matrix (simply the vertex degree)
+
+
+        Curve I(x): [0, \sigma] -> [0, 1] = \sum_{e \in E} p(e) = \sum_{(u, v) \ in E} p[u] * A[u][v] / d[u]
+        after having sorted the edges by \rho_{u,v} = p[u] / d[u] = 
+
+        Since the Lovasz-Simonovits curve is pointwise linear, it is enough to list the x,y coordinates of 
+        the non-derivabile points. It is assured that the first point is (0, 0) and the last is (sigma, 1)
+        """
+        x = []
+        y = []
+        edge_rho = []
+        for node in self.nodes:
+            probability_edge = 0.0
+            for edge in self.adj_list[node.id]:
+                probability_edge += edge.weight
+                edge_rho.append((edge, probabilities[node.id] / self.D[node.id, node.id]))
+            probability_edge /= self.D[node.id, node.id]
+            assert np.abs(probability_edge - 1.0) < 0.00001
+        edges_sorted = sorted(edge_rho, key=lambda x: (x[1], x[0].start.id), reverse=True)
+        x_iter = 0
+        y_iter = 0
+        assert np.abs(np.sum(self.A) - np.sum(np.diag(self.D))) < 0.0001
+        for edge, rho in edges_sorted:
+            edge: Edge
+            x_iter += edge.weight
+            y_iter += rho * edge.weight
+            x.append(x_iter)
+            y.append(y_iter)
+        
+        return x, y
