@@ -14,45 +14,6 @@ parser.add_argument("--dataset",
 args = parser.parse_args()
 
 
-def compute_lovasz_simonovits_curve(graph: Graph, probabilities: np.array):
-    """
-    - \sigma := \sum_{v\in V} d(v)
-    - p := vector probabilities
-    - A := adjacency matrix
-    - d := diagonal of D matrix (simply the vertex degree)
-
-
-    Curve I(x): [0, \sigma] -> [0, 1] = \sum_{e \in E} p(e) = \sum_{(u, v) \ in E} p[u] * A[u][v] / d[u]
-    after having sorted the edges by \rho_{u,v} = p[u] / d[u] = 
-
-    Since the Lovasz-Simonovits curve is pointwise linear, it is enough to list the x,y coordinates of 
-    the non-derivabile points. It is assured that the first point is (0, 0) and the last is (sigma, 1)
-    """
-    x = []
-    y = []
-    edge_rho = []
-    for node in graph.nodes:
-        probability_edge = 0.0
-        for edge in graph.adj_list[node.id]:
-            probability_edge += edge.weight
-            edge_rho.append((edge, probabilities[node.id] / graph.D[node.id, node.id]))
-        probability_edge /= graph.D[node.id, node.id]
-        assert np.abs(probability_edge - 1.0) < 0.00001
-    edges_sorted = sorted(edge_rho, key=lambda x: (x[1], x[0].start.id), reverse=True)
-    x_iter = 0
-    y_iter = 0
-    assert np.abs(np.sum(graph.A) - np.sum(np.diag(graph.D))) < 0.0001
-    for edge, rho in edges_sorted:
-        edge: Edge
-        x_iter += edge.weight
-        y_iter += rho * edge.weight
-        x.append(x_iter)
-        y.append(y_iter)
-    
-    return x, y
-
-
-
 def compute_cut_lovasz_simonovits_sweep(graph: Graph, probabilities: np.array) -> np.array:
     """
     Given a vertex probability vector and a graph, compute a bipartition (sweep)
@@ -157,7 +118,7 @@ if __name__ == "__main__":
         assert np.abs(np.sum(p_t_1) - 1.0) < 0.0001
         partition = compute_cut_lovasz_simonovits_sweep(largest_cc_graph, p_t)
 
-        x, y = compute_lovasz_simonovits_curve(largest_cc_graph, p_t)
+        x, y = largest_cc_graph.compute_lovasz_simonovits_curve(p_t)
         ls_curve_per_t.append((x, y))
     
     for t in range(int(np.ceil(epochs))):
