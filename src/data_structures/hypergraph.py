@@ -61,3 +61,68 @@ class HyperGraph:
             cc_map[root].append(hn)
 
         return sorted(cc_map.values(), key=lambda x: len(x), reverse=True)        
+    
+    def compute_conductance(self, bipartition: np.array) -> float:
+        """
+        The conductance of the hypergraph is computed as follows:
+        \phi(S) = vol(he \in H s.t. u\in S, v\notin S, u,v\in he) / min(vol(S), vol(V\setminus S))
+        """
+        assert np.sum(bipartition) > 0 and np.sum(bipartition) < len(bipartition)
+        hyperedges_crossing = 0
+        for hyperedge in self.hyperedges:
+            bipartitions_in_cut = np.array([bipartition[hn.id] for hn in hyperedge.hypernodes])
+            # Check that two vertices of the hyperedge lie on different sides of the bipartition.
+            hyperedges_crossing += 0 if np.sum(bipartitions_in_cut) == 0 or np.sum(bipartitions_in_cut) == len(bipartitions_in_cut) else hyperedge.weight
+        volume_1 = 0.0
+        volume_2 = 0.0
+        for hn in self.hypernodes:
+            if bipartition[hn.id]:
+                for he in self.adj_list[hn.id]:
+                    volume_1 += he.weight
+            else:
+                for he in self.adj_list[hn.id]:
+                    volume_2 += he.weight
+        min_volume = min(volume_1, volume_2)
+        assert min_volume > 0
+        conductance = hyperedges_crossing / min_volume
+        return conductance
+
+    def compute_lovasz_simonovits_sweep(self, p):
+        """
+        Return a bipartition, wrt the probability vector:
+        sort vertices by decreasing probability, and take the best-conductance sweep cut S_j,
+        
+        """
+        hypernodes_sorted_by_probability = []
+        for i, hypernode in enumerate(self.hypernodes):
+            hypernodes_sorted_by_probability.append((hypernode, p[i]))
+        hypernodes_sorted_by_probability = sorted(hypernodes_sorted_by_probability, 
+                                                  key=lambda x: x[1], 
+                                                  reverse=True)
+        S_j = []
+        bipartition = np.array([False for i in range(len(self.hypernodes))])
+        best_cut = None
+        best_conductance = None
+        hyperedges_crossing = 0.0
+        volume_1 = 0.0
+        volume_2 = np.sum([np.sum([he.weight for he in self.adj_list[hn.id]]) for hn in self.hypernodes])
+        for i in range(len(hypernodes_sorted_by_probability) - 1):
+            hn = hypernodes_sorted_by_probability[i][0]
+            hn: HyperNode
+            bipartition[hn.id] = True
+            # The edge needs to be added or removed from the crossing hyperedges, if:
+            for he in self.adj_list[hn.id]:
+                he: HyperEdge
+                bipartitions_in_hyperedge = np.array([bipartition[hn2.id] for hn2 in he.hypernodes if hn2.id != hn.id])
+                # Notice that bipartition[hn.id] is always true!!
+                if np.sum(bipartitions_in_hyperedge) == 0:
+                        hyperedges_crossing += he.weight
+                if np.sum(bipartitions_in_hyperedge) == len(bipartitions_in_hyperedge):
+                        hyperedges_crossing -= he.weight
+            volume_1 += np.sum([he.weight for he in self.adj_list[hn.id]])
+            volume_2 -= np.sum([he.weight for he in self.adj_list[hn.id]])
+            conductance = hyperedges_crossing / min(volume_1, volume_2)
+            if best_conductance is None or best_conductance > conductance:
+                best_cut = bipartition.copy()
+                best_conductance = conductance
+        return best_cut
