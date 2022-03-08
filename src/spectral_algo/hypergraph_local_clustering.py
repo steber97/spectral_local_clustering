@@ -1,4 +1,5 @@
 from ast import arg
+from multiprocessing import Pool
 from datasets.hypergraphs.d_regular_r_uniform.read_graph import read_graph
 from src.spectral_algo.hypergraph_clique_algorithm import HyperGraphLocalClusteringByClique
 from src.spectral_algo.hypergraph_star_algorithm import HyperGraphLocalClusteringByStar
@@ -15,6 +16,13 @@ args.add_argument("--dataset", type=str, choices=[
 ])
 args = args.parse_args()
 
+
+def local_clustering_multithread(v, solver, hypergraph, mu):
+    cut = solver.hypergraph_local_clustering(hypergraph, v, mu)
+    conductance = hypergraph.compute_conductance(cut)
+    return conductance 
+
+
 if __name__ == "__main__":
     start_time = time.time()
     # hypergraph = read_graph("datasets/hypergraphs/d_regular_r_uniform/n_6_d_2_r_4.txt")
@@ -23,19 +31,23 @@ if __name__ == "__main__":
 
     print("Input taken in {}s".format(time.time() - start_time))
     mu = 0.1
-    conductances_clique, conductances_star = [], []
-    local_clustering_clique = HyperGraphLocalClusteringByClique(hypergraph=hypergraph)
-    local_clustering_star = HyperGraphLocalClusteringByStar(hypergraph=hypergraph)
+    solvers = [HyperGraphLocalClusteringByClique(hypergraph=hypergraph), 
+               HyperGraphLocalClusteringByStar(hypergraph=hypergraph)]
+    labels = ['clique', 'star']
+    conductances_per_solver = {}
+    for label in labels:
+        conductances_per_solver[label] = []
     for i in tqdm(range(50)):
         # Take a random vertex.
         v = hypergraph.hypernodes[np.random.randint(0, len(hypergraph.hypernodes))]
-        cut_clique = local_clustering_clique.hypergraph_local_clustering(hypergraph, v, mu)
-        cut_star = local_clustering_star.hypergraph_local_clustering(hypergraph, v, mu)
-        conductance_clique = hypergraph.compute_conductance(cut_clique)
-        conductance_star = hypergraph.compute_conductance(cut_star)
-        conductances_clique.append(conductance_clique)
-        conductances_star.append(conductance_star)
+        conductances = []
+        for solver in solvers:
+            conductances.append(local_clustering_multithread(v, solver, hypergraph, mu))
+        
+        for j, c in enumerate(conductances):
+            conductances_per_solver[labels[j]].append(c)
     
-    plt.plot(range(len(conductances_clique)), sorted(conductances_clique))
-    plt.plot(range(len(conductances_star)), sorted(conductances_star))
+    for label in labels:
+        plt.plot(range(len(conductances_per_solver[label])), sorted(conductances_per_solver[label]), label=label)
+    plt.legend()
     plt.show()

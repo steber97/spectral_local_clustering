@@ -34,7 +34,8 @@ class HyperGraphLocalClusteringByClique:
             # Center the probability in the starting vertex.
             p_0 = np.zeros(len(hypergraph.hypernodes))
             p_0[v.id] = 1.0
-            ppr = pagerank(self.graph.M, p_0, delta=1e-8, alpha=alpha/100)
+            ppr = pagerank(self.graph.M_sparse, p_0, delta=1e-8, alpha=alpha/100)
+            
             # Take sweep on the ppr, as long as the cut is not larger than mu * vol(H)
             cut = hypergraph.compute_lovasz_simonovits_sweep(ppr, mu=mu)
             conductance = hypergraph.compute_conductance(cut)

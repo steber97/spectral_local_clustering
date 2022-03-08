@@ -16,6 +16,9 @@ class HyperNode:
     
     def __hash__(self) -> int:
         return self.id
+    
+    def __repr__(self) -> str:
+        return str(self.id)
 
 class HyperEdge:
     def __init__(self, hypernodes: List[HyperNode], weight: float) -> None:
@@ -119,7 +122,7 @@ class HyperGraph:
         for i, hypernode in enumerate(self.hypernodes):
             hypernodes_sorted_by_probability.append((hypernode, p[i]))
         hypernodes_sorted_by_probability = sorted(hypernodes_sorted_by_probability, 
-                                                  key=lambda x: x[1], 
+                                                  key=lambda x: (x[1], -x[0].id), 
                                                   reverse=True)
         S_j = []
         bipartition = np.array([False for i in range(len(self.hypernodes))])
