@@ -10,6 +10,7 @@ ranking of nodes (pages) in the adjacency matrix
 """
 
 import numpy as np
+from scipy.sparse import csr_matrix
 
 
 def pagerank(M, p_0: np.array, delta: float = 1e-8, alpha: float = 0.85):
@@ -39,7 +40,9 @@ def pagerank(M, p_0: np.array, delta: float = 1e-8, alpha: float = 0.85):
     p_t = p_0.copy()
     while True:
         p_t_1 = alpha * M @ p_t + (1 - alpha) * p_0
+        p_t_1 = np.where(p_t_1 > 1e-5, p_t_1, 0.0)
         if np.max(np.abs(p_t_1 - p_t)) < delta:
             break
         p_t = p_t_1
+    
     return p_t

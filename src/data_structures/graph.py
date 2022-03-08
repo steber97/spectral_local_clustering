@@ -7,7 +7,7 @@ import pandas as pd
 from data_structures.merge_find_set import MergeFindSet
 from tqdm import tqdm
 import time
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, identity, dia_matrix
 
 
 class Node:
@@ -56,28 +56,27 @@ class Graph:
             self.adj_list[node.id] = []
         for edge in edges:
             self.adj_list[edge.start.id].append(edge)
-        self.A = np.zeros((len(self.nodes), len(self.nodes)))
-        self.A[[edge.start.id for edge in edges], [edge.end.id for edge in edges]] += [edge.weight for edge in edges]
-
-        self.A_sparse = csr_matrix(self.A)
-        # Initialize D
-        self.D = np.diag(np.sum(self.A, axis=1))
-        self.D_sparse = csr_matrix(self.D)
+        self.A = csr_matrix((
+                [edge.weight for edge in edges], 
+                ([edge.start.id for edge in edges], [edge.end.id for edge in edges])), 
+            (len(self.nodes), len(self.nodes)))
+        
+        # self.A_sparse = csr_matrix(self.A)
+        # Initialize D equivalent to
+        self.density_list = np.array(self.A.sum(axis=1)).flatten()
+        # Offset is simply zero.
+        self.D = dia_matrix((self.density_list, [0]), (len(self.nodes), len(self.nodes)))
         # Initialize D^{-0.5}
-        self.D_inv_sqrt = np.diag(1.0 / np.sqrt(np.sum(self.A, axis=1)))
-        self.D_inv_sqrt_sparse = csr_matrix(self.D_inv_sqrt)
+        self.D_inv_sqrt = dia_matrix((1 / np.sqrt(self.density_list), [0]), (len(self.nodes), len(self.nodes)))
+        
         # Initialize D^{-1}
-        self.D_inv = np.diag(1.0 / np.sum(self.A, axis=1))
-        self.D_inv_sparse = csr_matrix(self.D_inv)
+        self.D_inv = dia_matrix((1 / self.density_list, [0]), (len(self.nodes), len(self.nodes)))
+        
         # Laplacian L = I - D_inv @ A
         # These two lines are equivalent, but the first although better looking has cubic complexity!
-        # self.L = np.eye(len(self.nodes)) - self.D_inv @ self.A
-        self.L = np.eye(len(self.nodes)) - (self.A.T * np.diag(self.D_inv)).T
-        self.L_sparse = csr_matrix(self.L)
-        # These two lines are equivalent, but the first although better looking has cubic complexity!
-        # self.M = 1/2 * (np.eye(len(self.nodes)) + self.A @ self.D_inv)
-        self.M = 1/2 * (np.eye(len(self.nodes)) + (self.A * np.diag(self.D_inv))) 
-        self.M_sparse = csr_matrix(self.M)
+        self.L = identity(len(self.nodes)) - self.D_inv @ self.A
+        
+        self.M = 1/2 * (identity(len(self.nodes)) + (self.A @ self.D_inv)) 
         # Assert that every column sums up to 1.0
         assert np.sum([np.abs(np.sum(self.M[:, i]) - 1.0) < 0.0001 for i in range(len(self.nodes))]) == len(self.nodes)
 
