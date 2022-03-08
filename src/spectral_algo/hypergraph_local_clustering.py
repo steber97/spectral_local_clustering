@@ -1,5 +1,6 @@
 from ast import arg
 from multiprocessing import Pool
+from data_structures.hypergraph import HyperEdge, HyperGraph, HyperNode
 from datasets.hypergraphs.d_regular_r_uniform.read_graph import read_graph
 from src.spectral_algo.hypergraph_clique_algorithm import HyperGraphLocalClusteringByClique
 from src.spectral_algo.hypergraph_star_algorithm import HyperGraphLocalClusteringByStar
@@ -12,12 +13,12 @@ import argparse
 
 args = argparse.ArgumentParser("Perform local graph clustering algorithm")
 args.add_argument("--dataset", type=str, choices=[
-    'network_theory', 'opsahl_collaboration', 'dblp_kdd'
+    'network_theory', 'opsahl_collaboration', 'dblp_kdd', 'dbpedia_writer'
 ])
 args = args.parse_args()
 
 
-def local_clustering_multithread(v, solver, hypergraph, mu):
+def local_clustering_multithread(v: HyperNode, solver, hypergraph: HyperGraph, mu: float):
     cut = solver.hypergraph_local_clustering(hypergraph, v, mu)
     conductance = hypergraph.compute_conductance(cut)
     return conductance 
@@ -48,6 +49,17 @@ if __name__ == "__main__":
             conductances_per_solver[labels[j]].append(c)
     
     for label in labels:
-        plt.plot(range(len(conductances_per_solver[label])), sorted(conductances_per_solver[label]), label=label)
+        x_s = []
+        y_s = []
+        conductances_sorted = sorted(conductances_per_solver[label])
+        x_s.append(0)
+        y_s.append(conductances_sorted[0])
+        for i in range(1, len(conductances_sorted)):
+            x_s.append(i)
+            y_s.append(conductances_sorted[i-1])
+            x_s.append(i)
+            y_s.append(conductances_sorted[i])
+            
+        plt.plot(x_s, y_s, label=label)
     plt.legend()
     plt.show()

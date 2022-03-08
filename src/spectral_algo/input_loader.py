@@ -30,3 +30,6 @@ def input_loader_hypergraph(dataset_name: str):
     if dataset_name == "dblp_kdd":
         return read_hypergraph("datasets/hypergraphs/hypergraph_pagerank_paper/dblp_kdd/out.dblp-kdd",
                                skiprows=2)
+    if dataset_name == "dbpedia_writer":
+        return read_hypergraph("datasets/hypergraphs/hypergraph_pagerank_paper/dbpedia_writer/download.tsv.dbpedia-writer/out.dbpedia-writer",
+                               skiprows=2)
