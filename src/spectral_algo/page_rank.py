@@ -11,6 +11,7 @@ ranking of nodes (pages) in the adjacency matrix
 
 import numpy as np
 
+
 def pagerank(M, p_0: np.array, delta: float = 1e-8, alpha: float = 0.85):
     """PageRank: The trillion dollar algorithm.
 
@@ -38,8 +39,7 @@ def pagerank(M, p_0: np.array, delta: float = 1e-8, alpha: float = 0.85):
     p_t = p_0.copy()
     while True:
         p_t_1 = alpha * M @ p_t + (1 - alpha) * p_0
-        if np.max(np.max(p_t_1 - p_t)) < delta:
+        if np.max(np.abs(p_t_1 - p_t)) < delta:
             break
         p_t = p_t_1
-    # print(p_t)
     return p_t
