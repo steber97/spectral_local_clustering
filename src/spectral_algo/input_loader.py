@@ -17,3 +17,14 @@ def input_loader_graph(dataset_name: str):
         print("Dataset name not supported!")
         exit(1)
     return read_graph
+
+
+def input_loader_hypergraph(dataset_name: str):
+    from datasets.hypergraphs.hypergraph_pagerank_paper.read_hypergraph import read_hypergraph
+    if dataset_name == "network_theory":
+        return read_hypergraph("datasets/hypergraphs/hypergraph_pagerank_paper/network_theory/download.tsv.dimacs10-netscience/dimacs10-netscience/out.dimacs10-netscience",
+                               skiprows=1)
+    if dataset_name == "opsahl_collaboration":
+        return read_hypergraph("datasets/hypergraphs/hypergraph_pagerank_paper/opsahl_collaboration/out.opsahl-collaboration",
+                               skiprows=2)
+        
