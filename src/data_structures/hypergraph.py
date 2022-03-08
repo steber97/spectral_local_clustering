@@ -7,7 +7,15 @@ from src.data_structures.merge_find_set import MergeFindSet
 class HyperNode:
     def __init__(self, id):
         self.id = id
+    
+    def __eq__(self, __o: object) -> bool:
+        return self.id == __o.id
 
+    def __neq__(self, __o: object) -> bool:
+        return self.id != __o.id
+    
+    def __hash__(self) -> int:
+        return self.id
 
 class HyperEdge:
     def __init__(self, hypernodes: List[HyperNode], weight: float) -> None:
@@ -15,6 +23,19 @@ class HyperEdge:
         for hn in hypernodes:
             self.hypernodes.add(hn)
         self.weight = weight
+
+    def __eq__(self, __o: object) -> bool:
+        if len(self.hypernodes) != len(__o.hypernodes):
+            return False
+        return len(self.hypernodes.intersection(__o.hypernodes)) == len(self.hypernodes)
+
+    def __neq__(self, __o: object) -> bool:
+        if len(self.hypernodes) != len(__o.hypernodes):
+            return True
+        return len(self.hypernodes.intersection(__o.hypernodes)) != len(self.hypernodes)
+    
+    def __hash__(self) -> int:
+        return hash(e for e in sorted(list(self.hypernodes), key=lambda x: x.id))
 
 
 class HyperGraph:
@@ -87,11 +108,12 @@ class HyperGraph:
         conductance = hyperedges_crossing / min_volume
         return conductance
 
-    def compute_lovasz_simonovits_sweep(self, p):
+    def compute_lovasz_simonovits_sweep(self, p, mu=0.5):
         """
         Return a bipartition, wrt the probability vector:
         sort vertices by decreasing probability, and take the best-conductance sweep cut S_j,
-        
+        @param p: probability vector
+        @param mu: max fraction of the volume taken by the sweep S_j. Usually used when computing local sweep cuts.
         """
         hypernodes_sorted_by_probability = []
         for i, hypernode in enumerate(self.hypernodes):
@@ -106,6 +128,7 @@ class HyperGraph:
         hyperedges_crossing = 0.0
         volume_1 = 0.0
         volume_2 = np.sum([np.sum([he.weight for he in self.adj_list[hn.id]]) for hn in self.hypernodes])
+        stop_volume = mu * volume_2  # When volume_1 gets to stop_volume, we need to stop.
         for i in range(len(hypernodes_sorted_by_probability) - 1):
             hn = hypernodes_sorted_by_probability[i][0]
             hn: HyperNode
@@ -125,4 +148,6 @@ class HyperGraph:
             if best_conductance is None or best_conductance > conductance:
                 best_cut = bipartition.copy()
                 best_conductance = conductance
+            if volume_1 >= stop_volume:
+                break  # Stop early.
         return best_cut
