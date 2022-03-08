@@ -27,4 +27,6 @@ def input_loader_hypergraph(dataset_name: str):
     if dataset_name == "opsahl_collaboration":
         return read_hypergraph("datasets/hypergraphs/hypergraph_pagerank_paper/opsahl_collaboration/out.opsahl-collaboration",
                                skiprows=2)
-        
+    if dataset_name == "dblp_kdd":
+        return read_hypergraph("datasets/hypergraphs/hypergraph_pagerank_paper/dblp_kdd/out.dblp-kdd",
+                               skiprows=2)
