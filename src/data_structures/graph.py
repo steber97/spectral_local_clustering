@@ -55,10 +55,8 @@ class Graph:
             self.adj_list[node.id] = []
         for edge in edges:
             self.adj_list[edge.start.id].append(edge)
-        
         self.A = np.zeros((len(self.nodes), len(self.nodes)))
-        for edge in edges:
-            self.A[edge.start.id, edge.end.id] += edge.weight
+        self.A[[edge.start.id for edge in edges], [edge.end.id for edge in edges]] += [edge.weight for edge in edges]
         # Initialize D
         self.D = np.diag(np.sum(self.A, axis=1))
         # Initialize D^{-0.5}
@@ -66,8 +64,12 @@ class Graph:
         # Initialize D^{-1}
         self.D_inv = np.diag(1.0 / np.sum(self.A, axis=1))
         # Laplacian L = I - D_inv @ A
-        self.L = np.eye(len(self.nodes)) - self.D_inv @ self.A
-        self.M = 1/2 * (np.eye(len(self.nodes)) + self.A @ self.D_inv)
+        # These two lines are equivalent, but the first although better looking has cubic complexity!
+        # self.L = np.eye(len(self.nodes)) - self.D_inv @ self.A
+        self.L = np.eye(len(self.nodes)) - (self.A.T * np.diag(self.D_inv)).T
+        # These two lines are equivalent, but the first although better looking has cubic complexity!
+        # self.M = 1/2 * (np.eye(len(self.nodes)) + self.A @ self.D_inv)
+        self.M = 1/2 * (np.eye(len(self.nodes)) + (self.A * np.diag(self.D_inv))) 
         # Assert that every column sums up to 1.0
         assert np.sum([np.abs(np.sum(self.M[:, i]) - 1.0) < 0.0001 for i in range(len(self.nodes))]) == len(self.nodes)
 
