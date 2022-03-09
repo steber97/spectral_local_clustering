@@ -39,10 +39,10 @@ def pagerank(M, p_0: np.array, delta: float = 1e-8, alpha: float = 0.85):
     assert alpha < 1.0 and alpha > 0
     p_t = p_0.copy()
     while True:
-        p_t_1 = alpha * M @ p_t + (1 - alpha) * p_0
+        p_t_1 = alpha * M.dot(p_t) + (1 - alpha) * p_0
+        # Perform truncation.
         p_t_1 = np.where(p_t_1 > 1e-5, p_t_1, 0.0)
         if np.max(np.abs(p_t_1 - p_t)) < delta:
             break
         p_t = p_t_1
-    
     return p_t

@@ -39,18 +39,24 @@ if __name__ == "__main__":
                HyperGraphLocalClusteringKshiteejProcess(hypergraph=hypergraph)]
     labels = ['clique', 'star', 'kshiteej']
     conductances_per_solver = {}
+    running_time_per_label = {}
     for label in labels:
         conductances_per_solver[label] = []
+        running_time_per_label[label] = []
+    
     for i in tqdm(range(50)):
         # Take a random vertex.
         v = hypergraph.hypernodes[np.random.randint(0, len(hypergraph.hypernodes))]
         conductances = []
-        for solver in solvers:
+        for label, solver in zip(labels, solvers):
+            start_time = time.time()
             conductances.append(local_clustering_multithread(v, solver, hypergraph, mu))
+            running_time_per_label[label].append(time.time() - start_time)
         
         for j, c in enumerate(conductances):
             conductances_per_solver[labels[j]].append(c)
     
+    fig, axes = plt.subplots(1, 2)
     for label in labels:
         x_s = []
         y_s = []
@@ -63,7 +69,12 @@ if __name__ == "__main__":
             x_s.append(i)
             y_s.append(conductances_sorted[i])
             
-        plt.plot(x_s, y_s, label=label)
-    plt.ylim(0, 1)
-    plt.legend()
+        axes[0].plot(x_s, y_s, label=label)
+    
+    axes[1].boxplot([running_time_per_label[label] for label in labels], labels=labels)
+
+    axes[0].set_ylim(0, 1)
+    axes[0].legend()
+    axes[1].legend()
+
     plt.show()

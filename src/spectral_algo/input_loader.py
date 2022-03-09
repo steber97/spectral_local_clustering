@@ -20,7 +20,7 @@ def input_loader_graph(dataset_name: str):
 
 
 def input_loader_hypergraph(dataset_name: str):
-    from datasets.hypergraphs.hypergraph_pagerank_paper.read_hypergraph import read_hypergraph
+    from spectral_local_clustering.datasets.hypergraphs.hypergraph_pagerank_paper.read_hypergraph import read_hypergraph
     if dataset_name == "network_theory":
         return read_hypergraph("datasets/hypergraphs/hypergraph_pagerank_paper/network_theory/download.tsv.dimacs10-netscience/dimacs10-netscience/out.dimacs10-netscience",
                                skiprows=1)
@@ -33,6 +33,6 @@ def input_loader_hypergraph(dataset_name: str):
     if dataset_name == "dbpedia_writer":
         return read_hypergraph("datasets/hypergraphs/hypergraph_pagerank_paper/dbpedia_writer/download.tsv.dbpedia-writer/out.dbpedia-writer",
                                skiprows=2)
-    from datasets.hypergraphs.d_regular_r_uniform.read_graph import read_graph as read_uniform_regular_hypergraph
+    from spectral_local_clustering.datasets.hypergraphs.d_regular_r_uniform.read_graph import read_graph as read_uniform_regular_hypergraph
     if dataset_name == "n_400_d_10_r_8":
         return read_uniform_regular_hypergraph("datasets/hypergraphs/d_regular_r_uniform/n_400_d_10_r_8.txt")
