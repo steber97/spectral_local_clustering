@@ -2,6 +2,7 @@ from ast import arg
 from multiprocessing import Pool
 from data_structures.hypergraph import HyperEdge, HyperGraph, HyperNode
 from datasets.hypergraphs.d_regular_r_uniform.read_graph import read_graph
+from spectral_algo.kshiteej_process import HyperGraphLocalClusteringKshiteejProcess
 from src.spectral_algo.hypergraph_clique_algorithm import HyperGraphLocalClusteringByClique
 from src.spectral_algo.hypergraph_star_algorithm import HyperGraphLocalClusteringByStar
 from src.spectral_algo.input_loader import input_loader_hypergraph
@@ -13,7 +14,8 @@ import argparse
 
 args = argparse.ArgumentParser("Perform local graph clustering algorithm")
 args.add_argument("--dataset", type=str, choices=[
-    'network_theory', 'opsahl_collaboration', 'dblp_kdd', 'dbpedia_writer'
+    'network_theory', 'opsahl_collaboration', 'dblp_kdd', 'dbpedia_writer',
+    "n_400_d_10_r_8"
 ])
 args = args.parse_args()
 
@@ -33,8 +35,9 @@ if __name__ == "__main__":
     print("Input taken in {}s".format(time.time() - start_time))
     mu = 0.1
     solvers = [HyperGraphLocalClusteringByClique(hypergraph=hypergraph), 
-               HyperGraphLocalClusteringByStar(hypergraph=hypergraph)]
-    labels = ['clique', 'star']
+               HyperGraphLocalClusteringByStar(hypergraph=hypergraph),
+               HyperGraphLocalClusteringKshiteejProcess(hypergraph=hypergraph)]
+    labels = ['clique', 'star', 'kshiteej']
     conductances_per_solver = {}
     for label in labels:
         conductances_per_solver[label] = []
@@ -61,5 +64,6 @@ if __name__ == "__main__":
             y_s.append(conductances_sorted[i])
             
         plt.plot(x_s, y_s, label=label)
+    plt.ylim(0, 1)
     plt.legend()
     plt.show()
