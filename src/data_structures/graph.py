@@ -46,6 +46,7 @@ class Graph:
         If the graph is unweighted, leave all edge weights to 1 (float value in the tuple).
         """
         self.nodes = nodes
+        self.edges = sorted(edges, key=lambda x: (x.start.id, x.end.id))
         # Assert ids are unique for the nodes. They must be in range [0, len(nodes)-1]
         assert len(np.unique([n.id for n in nodes])) == len(nodes) 
         assert np.max([n.id for n in nodes]) == len(nodes)-1 
@@ -56,35 +57,69 @@ class Graph:
             self.adj_list[node.id] = []
         for edge in edges:
             self.adj_list[edge.start.id].append(edge)
-        self.A = csr_matrix((
-                [edge.weight for edge in edges], 
-                ([edge.start.id for edge in edges], [edge.end.id for edge in edges])), 
-            (len(self.nodes), len(self.nodes)))
         
-        # self.A_sparse = csr_matrix(self.A)
-        # Initialize D equivalent to
-        self.density_list = np.array(self.A.sum(axis=1)).flatten()
-        # Offset is simply zero.
-        self.D = dia_matrix((self.density_list, [0]), (len(self.nodes), len(self.nodes)))
-        # Initialize D^{-0.5}
-        self.D_inv_sqrt = dia_matrix((1 / np.sqrt(self.density_list), [0]), (len(self.nodes), len(self.nodes)))
-        
-        # Initialize D^{-1}
-        self.D_inv = dia_matrix((1 / self.density_list, [0]), (len(self.nodes), len(self.nodes)))
-        
-        # Laplacian L = I - D_inv @ A
-        # These two lines are equivalent, but the first although better looking has cubic complexity!
-        self.L = identity(len(self.nodes)) - self.D_inv @ self.A
-        
-        self.M = 1/2 * (identity(len(self.nodes)) + (self.A @ self.D_inv)) 
+        self._A = None  # See method getA()
+        self._D = None  # See method getD()
+        self._density_list = None  # See method getDensityList()
+        self._D_inv_sqrt = None  # See method getDInvSqrt()
+        self._D_inv = None  # See method getDInv()
+        self._L = None  # See method getL()
+        self._M = None
+
         # Assert that every column sums up to 1.0
-        assert np.sum([np.abs(np.sum(self.M[:, i]) - 1.0) < 0.0001 for i in range(len(self.nodes))]) == len(self.nodes)
+        # assert np.sum([np.abs(np.sum(self.getM()[:, i]) - 1.0) < 0.0001 for i in range(len(self.nodes))]) == len(self.nodes)
 
     def __repr__(self) -> str:
         res = ""
         for e in self.edges_list:
             res += "{} -> {}, weight {}\n".format(e.start, e.end, e.weight)
         return res
+
+    def getA(self):
+        if self._A is None:
+            self._A = csr_matrix((
+                    [edge.weight for edge in self.edges], 
+                    ([edge.start.id for edge in self.edges], [edge.end.id for edge in self.edges])), 
+                (len(self.nodes), len(self.nodes)))
+        return self._A
+        
+    def getDensityList(self):
+        if self._density_list is None:
+            # Sum by row
+            self._density_list = np.array(self.getA().sum(axis=1)).flatten()
+        return self._density_list
+    
+    def getD(self):
+        if self._D is None:
+            # Offset is simply zero.
+            self._D = dia_matrix((self.getDensityList(), [0]), (len(self.nodes), len(self.nodes)))
+        return self._D
+
+    def getDInvSqrt(self):
+        if self._D_inv_sqrt is None: 
+            # Initialize D^{-0.5}
+            self._D_inv_sqrt = dia_matrix((1 / np.sqrt(self.getDensityList()), [0]), (len(self.nodes), len(self.nodes)))
+        return self._D_inv_sqrt
+
+    def getDInv(self):
+        if self._D_inv is None: 
+            # Initialize D^{-1}
+            self._D_inv = dia_matrix((1 / self.getDensityList(), [0]), (len(self.nodes), len(self.nodes)))
+        return self._D_inv
+
+    def getL(self):
+        if self._L is None:
+            # Laplacian L = I - D_inv @ A
+            self._L = identity(len(self.nodes)) - self.getDInv().dot(self.getA())
+        return self._L
+        
+    def getM(self):
+        if self._M is None:
+            # Transition probability matrix
+            A = self.getA()
+            DInv = self.getDInv()
+            self._M = 1/2 * (identity(len(self.nodes)) + (A.dot(DInv))) 
+        return self._M
 
     def get_largest_cc(self) -> Graph:
         """

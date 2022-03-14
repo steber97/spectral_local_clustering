@@ -34,7 +34,7 @@ class HyperGraphLocalClusteringByStar:
             # Center the probability in the starting vertex.
             p_0 = np.zeros(len(self.graph.nodes))
             p_0[v.id] = 1.0
-            ppr = pagerank(self.graph.M, p_0, delta=1e-8, alpha=alpha/100)
+            ppr = pagerank(self.graph.getM(), p_0, delta=1e-8, alpha=alpha/100)
             ppr_only_hypergraph_nodes = ppr[:len(hypergraph.hypernodes)]
             # Take sweep on the ppr, as long as the cut is not larger than mu * vol(H)
             cut = hypergraph.compute_lovasz_simonovits_sweep(ppr_only_hypergraph_nodes, mu=mu)

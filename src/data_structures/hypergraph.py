@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from typing import List
-from src.data_structures.merge_find_set import MergeFindSet
+from spectral_local_clustering.src.data_structures.merge_find_set import MergeFindSet
 
 
 class HyperNode:

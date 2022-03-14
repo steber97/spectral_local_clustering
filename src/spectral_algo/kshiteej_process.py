@@ -96,7 +96,10 @@ class HyperGraphLocalClusteringKshiteejProcess:
             if diff != 0:
                 assert diff > 0
                 edges.append(Edge(node, node, diff))
-        return Graph(nodes, edges), map_hyperedge_edge
+        # print("Time for nodes and edges = {}".format(time.time() - time_start))
+        graph = Graph(nodes, edges), map_hyperedge_edge
+        # print("Time for graph initialization: {}".format(time.time() - time_start))
+        return graph
     
     def hypergraph_local_clustering(self, hypergraph: HyperGraph, v: HyperNode, mu: float = 0.1) -> np.array:
         r, d = self.compute_r_d(hypergraph)
@@ -115,11 +118,12 @@ class HyperGraphLocalClusteringKshiteejProcess:
                 best_cut = ls_sweep
                 best_conductance = conductance
             # Evolve pt
-            Mt = ((1 - self.dt) * (identity(len(graph_t.nodes))) + self.dt / d * graph_t.A)
-            p_t_dt = Mt @ pt
+            Mt = ((1 - self.dt) * (identity(len(graph_t.nodes))) + self.dt / d * graph_t.getA())
+            p_t_dt = Mt.dot(pt)
             if np.sum(np.abs(p_t_dt - pt)) < 0.0001:
                 break
             pt = p_t_dt
+        
         return best_cut
 
 
