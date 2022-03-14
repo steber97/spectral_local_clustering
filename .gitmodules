@@ -1,0 +1,3 @@
+[submodule "Hypergraph_clustering_based_on_PageRank"]
+	path = Hypergraph_clustering_based_on_PageRank
+	url = git@github.com:atsushi-miyauchi/Hypergraph_clustering_based_on_PageRank.git
