@@ -120,7 +120,8 @@ class HyperGraph:
         """
         hypernodes_sorted_by_probability = []
         for i, hypernode in enumerate(self.hypernodes):
-            hypernodes_sorted_by_probability.append((hypernode, p[i]))
+            degree = np.sum([he.weight for he in self.adj_list[hypernode.id]])
+            hypernodes_sorted_by_probability.append((hypernode, p[i] / degree))
         hypernodes_sorted_by_probability = sorted(hypernodes_sorted_by_probability, 
                                                   key=lambda x: (x[1], -x[0].id), 
                                                   reverse=True)
