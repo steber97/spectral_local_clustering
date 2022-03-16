@@ -48,7 +48,7 @@ namespace SubmodularHeatEquation
 
                 vec[v_init] = 1.0;
 
-                vec = Hypergraph.Simulate_round(hypergraph, vec, v_init, dt, T, alpha);
+                vec = Simulate_round(hypergraph, vec, v_init, dt, T, alpha);
 
                 for (int i = 0; i < n; i++)
                 {
