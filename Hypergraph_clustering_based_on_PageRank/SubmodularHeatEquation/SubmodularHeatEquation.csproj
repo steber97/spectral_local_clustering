@@ -38,6 +38,8 @@
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LocalClusteringAlgorithm.cs" />
+    <Compile Include="LocalClusteringHeatEquation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Hypergraph.cs" />
