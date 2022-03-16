@@ -50,77 +50,17 @@ namespace SubmodularHeatEquation
 
                 vec = Simulate_round(hypergraph, vec, v_init, dt, T, alpha);
 
-                for (int i = 0; i < n; i++)
+                bool[] cut = hypergraph.ComputeBestSweepCut(vec);
+                double conductance = hypergraph.conductance(cut);
+                if (conductance < min_conductance)
                 {
-                    vec[i] /= hypergraph.w_Degree(i);
-                }
-
-                int[] index = Enumerable.Range(0, n).ToArray<int>();
-                Array.Sort<int>(index, (a, b) => vec[a].CompareTo(vec[b]));
-
-                Array.Reverse(index);
-
-                double vol_V = 0;
-                for (int i = 0; i < n; i++) vol_V += hypergraph.w_Degree(i);
-
-                var num_contained_nodes = new Dictionary<int, int>();
-                for (int eid = 0; eid < hypergraph.m; eid++)
-                {
-                    num_contained_nodes.Add(eid, 0);
-                }
-
-                double cut_val = 0;
-                double vol_S = 0;
-                double conductance = double.MaxValue;
-                int best_index = -1;
-
-                foreach (int i in index)
-                {
-                    vol_S += hypergraph.w_Degree(i);
-                    if (vol_S <= vol_V / 10.0)
-                    {
-                        foreach (var e in hypergraph.incident_edges[i])
-                        {
-                            if (num_contained_nodes[e] == 0)
-                            {
-                                cut_val += hypergraph.weights[e];
-                            }
-                            if (num_contained_nodes[e] == edge_size[e] - 1)
-                            {
-                                cut_val -= hypergraph.weights[e];
-                            }
-                            num_contained_nodes[e] += 1;
-                        }
-                        conductance = cut_val / Math.Min(vol_S, vol_V - vol_S);
-                        //Console.WriteLine($"{cut_val}, {vol_S}, {vol_V}, {conductance}");
-                        if (conductance < min_conductance)
-                        {
-                            min_conductance = conductance;
-                            best_index = i;
-                            for (int j = 0; j < best_cut.Length; j++)
-                            {
-                                best_cut[j] = false;
-                            }
-
-                            foreach (var j in index)
-                            {
-                                best_cut[j] = true;
-                                if (j == i)
-                                    break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
+                    min_conductance = conductance;
+                    best_cut = cut;
                 }
             }
             time.Stop();
             TimeSpan ts = time.Elapsed;
 
-            Console.WriteLine("conductance: " + min_conductance);
-            Console.WriteLine("time(s): " + time.ElapsedMilliseconds/1000.0);
             return best_cut;
         }
         

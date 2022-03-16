@@ -29,9 +29,9 @@ namespace SubmodularHeatEquation
                 Vector<double> p0 = DenseVector.Create(starGraph.n, 0.0);
                 p0[startingVertex] = 1.0;
                 Vector<double> ppr = PageRank.ComputePageRank(starGraph.M, p0, alpha, 1e-8);
-                ppr = ppr.SubVector(0, hypergraph.n);
+                Vector<double> ppr_hypergraph = ppr.SubVector(0, hypergraph.n);
                 
-                bool[] cut = hypergraph.ComputeBestSweepCut(ppr);
+                bool[] cut = hypergraph.ComputeBestSweepCut(ppr_hypergraph);
                 double conductance = hypergraph.conductance(cut);
                 if (min_conductance > conductance)
                 {
@@ -39,7 +39,6 @@ namespace SubmodularHeatEquation
                     best_cut = cut;
                 }
             }
-            Console.WriteLine("time(s): " + time.ElapsedMilliseconds/1000.0);
             return best_cut;
         }
 

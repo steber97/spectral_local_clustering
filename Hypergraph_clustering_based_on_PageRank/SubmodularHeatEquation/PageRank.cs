@@ -25,7 +25,7 @@ namespace SubmodularHeatEquation
                 }
                 if (stop)
                     break;
-                p_t = p_t_1;
+                p_t_1.CopyTo(p_t);
             }
             return p_t;
         }
