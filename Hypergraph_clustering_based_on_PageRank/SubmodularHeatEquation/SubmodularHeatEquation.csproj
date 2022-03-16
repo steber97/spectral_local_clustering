@@ -41,6 +41,7 @@
     <Compile Include="Graph.cs" />
     <Compile Include="LocalClusteringAlgorithm.cs" />
     <Compile Include="LocalClusteringClique.cs" />
+    <Compile Include="LocalClusteringDiscreteGraphIteration.cs" />
     <Compile Include="LocalClusteringHeatEquation.cs" />
     <Compile Include="LocalClusteringStar.cs" />
     <Compile Include="PageRank.cs" />

@@ -32,14 +32,15 @@ namespace SubmodularHeatEquation
 
         public static void Main(string[] args)
         {
+            string filename = "../../instance/graphprod_LCC.txt";
             // string filename = "../../instance/netscience_LCC.txt";
-            // string filename = "../../instance/graphprod_LCC.txt";
             // string filename = "../../instance/dblp_kdd_LCC.txt";
-            string filename = "../../instance/opsahl-collaboration_LCC.txt";
+            // string filename = "../../instance/opsahl-collaboration_LCC.txt";
 
             LocalClusteringHeatEquation lche = new LocalClusteringHeatEquation();
             LocalClusteringStar lcs = new LocalClusteringStar();
             LocalClusteringClique lcc = new LocalClusteringClique();
+            LocalClusteringDiscreteGraphIteration lcdgi = new LocalClusteringDiscreteGraphIteration();
             
             Hypergraph hypergraph = Hypergraph.Open(filename);
             int[] startingVertices = new int[hypergraph.n];
@@ -48,7 +49,7 @@ namespace SubmodularHeatEquation
             Random random = new Random();
             startingVertices = startingVertices.OrderBy(x => random.Next()).ToArray();
 
-            string[] methods = {"Heat_equation", "star", "clique"};
+            string[] methods = {"Heat_equation", "Star", "Clique", "Discrete"};
             double[,] conductances = new double[methods.Length, 50];             
             for (int i = 0; i < 50; i++)
             {
@@ -57,9 +58,11 @@ namespace SubmodularHeatEquation
                 bool[] cut_heat_eq = lche.LocalClustering(hypergraph, vInit, 0.0);
                 bool[] cut_star = lcs.LocalClustering(hypergraph, vInit, 0.0);
                 bool[] cut_clique = lcc.LocalClustering(hypergraph, vInit, 0.0);
+                bool[] cut_discrete = lcdgi.LocalClustering(hypergraph, vInit, 50.0);
                 conductances[0, i] = hypergraph.conductance(cut_heat_eq);
                 conductances[1, i] = hypergraph.conductance(cut_star);
                 conductances[2, i] = hypergraph.conductance(cut_clique);
+                conductances[3, i] = hypergraph.conductance(cut_discrete);
             }
 
             using (StreamWriter writer = new StreamWriter("../../../output/output_conductances.csv"))  
