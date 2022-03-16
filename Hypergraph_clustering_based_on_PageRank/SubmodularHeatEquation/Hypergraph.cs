@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace SubmodularHeatEquation
 {
@@ -164,62 +165,85 @@ namespace SubmodularHeatEquation
             
             return volume_cut / Math.Min(volume_partition, TotalVolume() - volume_partition);
         }
-
-    }
-
-
-    public class Graph
-    {
-        public List<Dictionary<int, double>> adj_list = new List<Dictionary<int, double>>();
-
-        public int Degree(int v)
+        
+        public bool[] ComputeBestSweepCut(Vector<double> p)
         {
-            return adj_list[v].Count;
-        }
-
-        public double w_Degree(int v)
-        {
-            double sum = 0;
-            foreach (var neighbor_val in adj_list[v].Values)
+            Vector<double> vec = DenseVector.Create(p.Count, 0.0);
+            double min_conductance = Double.MaxValue;
+            var edge_size = new Dictionary<int, int>();
+            bool[] best_cut = new bool[n];
+            for (int eid = 0; eid < m; eid++)
             {
-                sum += neighbor_val;
+                edge_size.Add(eid, ID_rev[eid].Count());
             }
-            return sum;
-        }
-
-        public int n
-        {
-            get
+            p.CopyTo(vec);
+            // normalize vector wrt node degrees.
+            for (int i = 0; i < n; i++)
             {
-                return adj_list.Count;
+                vec[i] /= w_Degree(i);
             }
-        }
 
-        public int m
-        {
-            get
+            int[] index = Enumerable.Range(0, n).ToArray<int>();
+            Array.Sort<int>(index, (a, b) => vec[a].CompareTo(vec[b]));
+
+            Array.Reverse(index);
+
+            double vol_V = 0;
+            for (int i = 0; i < n; i++) vol_V += w_Degree(i);
+
+            var num_contained_nodes = new Dictionary<int, int>();
+            for (int eid = 0; eid < m; eid++)
             {
-                int sum = 0;
-                for (int i = 0; i < n; i++)
+                num_contained_nodes.Add(eid, 0);
+            }
+
+            double cut_val = 0;
+            double vol_S = 0;
+            int best_index = -1;
+
+            foreach (int i in index)
+            {
+                vol_S += w_Degree(i);
+                if (vol_S <= vol_V / 10.0)
                 {
-                    sum += adj_list[i].Keys.Count;
+                    foreach (var e in incident_edges[i])
+                    {
+                        if (num_contained_nodes[e] == 0)
+                        {
+                            cut_val += weights[e];
+                        }
+                        if (num_contained_nodes[e] == edge_size[e] - 1)
+                        {
+                            cut_val -= weights[e];
+                        }
+                        num_contained_nodes[e] += 1;
+                    }
+                    double conductance = cut_val / Math.Min(vol_S, vol_V - vol_S);
+                    //Console.WriteLine($"{cut_val}, {vol_S}, {vol_V}, {conductance}");
+                    if (conductance < min_conductance)
+                    {
+                        min_conductance = conductance;
+                        best_index = i;
+                        for (int j = 0; j < best_cut.Length; j++)
+                        {
+                            best_cut[j] = false;
+                        }
+
+                        foreach (var j in index)
+                        {
+                            best_cut[j] = true;
+                            if (j == i)
+                                break;
+                        }
+                    }
                 }
-                return sum / 2;
+                else
+                {
+                    break;
+                }
             }
+            return best_cut;
         }
-
-        public void AddEdge(List<int> edge, double w = 1)
-        {
-            while (Math.Max(edge[0], edge[1]) >= adj_list.Count)
-            {
-                adj_list.Add(new Dictionary<int, double>());
-            }
-
-            adj_list[edge[0]][edge[1]] = w; 
-            adj_list[edge[1]][edge[0]] = w;
-        }
-
     }
-
 
 }

@@ -33,9 +33,16 @@ namespace SubmodularHeatEquation
             string filename = "../../instance/dbpedia-writer_LCC.txt";
             int vInit = 0;
             LocalClusteringHeatEquation lche = new LocalClusteringHeatEquation();
+            LocalClusteringStar lcs = new LocalClusteringStar();
+            
             Hypergraph hypergraph = Hypergraph.Open(filename);
-            bool[] cut1 = lche.LocalClustering(hypergraph, vInit, 0.0);
-            Console.WriteLine(hypergraph.conductance(cut1));
+            
+            Console.WriteLine("Numer of nodes and edges: " + hypergraph.n + " " + hypergraph.m);
+            
+            bool[] cut_heat_eq = lche.LocalClustering(hypergraph, vInit, 0.0);
+            bool[] cut_star = lcs.LocalClustering(hypergraph, vInit, 0.0);  
+            Console.WriteLine("Heat equation conductance: " + hypergraph.conductance(cut_heat_eq));
+            Console.WriteLine("Star conductance: " + hypergraph.conductance(cut_star));
         }
 
 
