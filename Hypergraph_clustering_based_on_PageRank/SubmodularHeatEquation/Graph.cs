@@ -74,7 +74,7 @@ namespace SubmodularHeatEquation
             {
                 foreach (var v in adj_list[i])
                 {
-                    A[i, v.Key] = v.Value;
+                    A[i, v.Key] += v.Value;
                 }
             }
 
@@ -83,10 +83,13 @@ namespace SubmodularHeatEquation
                 D[i, i] = w_Degree(i);
 
             D_Inv = new SparseMatrix(n, n);
-            for (int i = 0; i < n; i++)
-                D[i, i] = 1 / w_Degree(i);
 
-            M = 0.5 * (SparseMatrix.CreateDiagonal(n, n, 1.0) + (A * D));
+            for (int i = 0; i < n; i++)
+            {
+                D_Inv[i, i] = (1.0 / w_Degree(i));
+            }
+
+            M = 0.5 * (SparseMatrix.CreateDiagonal(n, n, 1.0) + (A * D_Inv));
         }
 
     }
