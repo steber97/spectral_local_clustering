@@ -234,9 +234,15 @@ namespace SubmodularHeatEquation
 
         public static void Main(string[] args)
         {
+            string filename = "../../instance/dbpedia-writer_LCC.txt";
+            int vInit = 0;
             //Proposed_local("../../instance/dbpedia-writer_LCC.txt", 0);
-            Proposed_local_round("../../instance/dbpedia-writer_LCC.txt", 0); // Run Algorithm 1 for DBpedia Writers with seed node 0
-
+            Proposed_local_round(filename, vInit); // Run Algorithm 1 for DBpedia Writers with seed node 0
+            
+            Console.WriteLine("Now with new interface");
+            LocalClusteringHeatEquation lche = new LocalClusteringHeatEquation();
+            Hypergraph hypergraph = Hypergraph.Open(filename);
+            lche.LocalClustering(hypergraph, vInit, 0.0);
         }
 
 
