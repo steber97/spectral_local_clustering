@@ -86,7 +86,7 @@ namespace SubmodularHeatEquation
             for (int i = 0; i < n; i++)
                 D[i, i] = 1 / w_Degree(i);
 
-            M = 0.5 * (SparseMatrix.CreateDiagonal(n, n, 1) + A * D_Inv);
+            M = 0.5 * (SparseMatrix.CreateDiagonal(n, n, 1.0) + (A * D));
         }
 
     }
