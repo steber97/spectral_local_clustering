@@ -32,11 +32,15 @@ namespace SubmodularHeatEquation
 
         public static void Main(string[] args)
         {
-            string filename = "../../instance/netscience_LCC.txt";
+            // string filename = "../../instance/netscience_LCC.txt";
+            // string filename = "../../instance/graphprod_LCC.txt";
+            // string filename = "../../instance/dblp_kdd_LCC.txt";
+            string filename = "../../instance/opsahl-collaboration_LCC.txt";
 
             LocalClusteringHeatEquation lche = new LocalClusteringHeatEquation();
             LocalClusteringStar lcs = new LocalClusteringStar();
-
+            LocalClusteringClique lcc = new LocalClusteringClique();
+            
             Hypergraph hypergraph = Hypergraph.Open(filename);
             int[] startingVertices = new int[hypergraph.n];
             for (int i = 0; i < hypergraph.n; i++)
@@ -44,16 +48,18 @@ namespace SubmodularHeatEquation
             Random random = new Random();
             startingVertices = startingVertices.OrderBy(x => random.Next()).ToArray();
 
-            string[] methods = {"Heat_equation", "star"};
-            double[,] conductances = new double[2, 50];             
+            string[] methods = {"Heat_equation", "star", "clique"};
+            double[,] conductances = new double[methods.Length, 50];             
             for (int i = 0; i < 50; i++)
             {
                 // start from a random vertex.
                 int vInit = startingVertices[i];
                 bool[] cut_heat_eq = lche.LocalClustering(hypergraph, vInit, 0.0);
-                bool[] cut_star = lcs.LocalClustering(hypergraph, vInit, 0.0);  
+                bool[] cut_star = lcs.LocalClustering(hypergraph, vInit, 0.0);
+                bool[] cut_clique = lcc.LocalClustering(hypergraph, vInit, 0.0);
                 conductances[0, i] = hypergraph.conductance(cut_heat_eq);
                 conductances[1, i] = hypergraph.conductance(cut_star);
+                conductances[2, i] = hypergraph.conductance(cut_clique);
             }
 
             using (StreamWriter writer = new StreamWriter("../../../output/output_conductances.csv"))  
