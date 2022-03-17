@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
+using System.Security.Policy;
 using System.Web;
 using MathNet.Numerics.Integration;
 using MathNet.Numerics.LinearAlgebra;
@@ -26,16 +27,60 @@ namespace SubmodularHeatEquation
             double min_conductance = Double.MaxValue;
             bool[] best_cut = new bool[hypergraph.n];
 
-            List<double> max_diff = new List<double>();
-            int[] oldIndex = new int[hypergraph.n];
             for (int i = 0; i < 100; i++)
             {
+                var time = new System.Diagnostics.Stopwatch();
+                time.Start();
                 Graph graph = BuildGraph(hypergraph, pt);
-                SparseMatrix Mt = ((1 - dt) * SparseMatrix.CreateDiagonal(hypergraph.n, hypergraph.n, 1.0)) + (dt * graph.A * graph.D_Inv);
+                time.Stop();
+                double t1 = time.Elapsed.TotalMilliseconds; 
                 
+                time.Reset();
+                time.Start();
+                SparseMatrix Mt = ((1 - dt) * SparseMatrix.CreateDiagonal(hypergraph.n, hypergraph.n, 1.0)) + (dt * graph.A * graph.D_Inv);
+                time.Stop();
+                double t2 = time.Elapsed.TotalMilliseconds;
+                
+                time.Reset();
+                time.Start();
                 Vector<double> pt_1 = Mt * pt;
+                time.Stop();
+                double t3 = time.Elapsed.TotalMilliseconds;
+
+                time.Reset();
+                time.Start();
+                Vector<double> pt_2 = new DenseVector(hypergraph.n);
+                for (int j = 0; j < hypergraph.n; j++)
+                {
+                    pt_2[j] = (1 - dt) * pt[j];
+                    foreach (var v in graph.adj_list[j])
+                    {
+                        pt_2[j] += dt * pt[v.Key] * v.Value / graph.w_Degree(v.Key);
+                    }
+
+                    if (Math.Abs(pt_2[j] - pt_1[j]) > 1e-8)
+                    {
+                        double p1 = pt_1[j];
+                        double p2 = pt_2[j];
+                        double diff = pt_1[j] - pt_2[j];
+                        double a = 10.0;
+                    }
+                }
+                time.Stop();
+                double t6 = time.Elapsed.TotalMilliseconds;
+                
+                time.Reset();
+                time.Start();
                 bool[] cut = hypergraph.ComputeBestSweepCut(pt_1);
+                time.Stop();
+                double t4 = time.Elapsed.TotalMilliseconds;
+                
+                
+                time.Reset();
+                time.Start();
                 double conductance = hypergraph.conductance(cut);
+                time.Stop();
+                double t5 = time.Elapsed.TotalMilliseconds;
                 if (min_conductance > conductance)
                 {
                     min_conductance = conductance;
@@ -50,6 +95,8 @@ namespace SubmodularHeatEquation
         
         private Graph BuildGraph(Hypergraph hypergraph, Vector<double> pt)
         {
+            var time = new System.Diagnostics.Stopwatch();
+            time.Start();
             Vector<double> pWeightedByDegree = DenseVector.Create(hypergraph.n, 0.0);
             for (int i = 0; i < hypergraph.n; i++)
                 pWeightedByDegree[i] = pt[i] / hypergraph.w_Degree(i);
@@ -123,9 +170,13 @@ namespace SubmodularHeatEquation
                     weights.Add((hypergraph.w_Degree(i) - edges_counter_per_node[i]) / 2);
                 }
             }
-            
+            time.Stop();
+            double t1 = time.Elapsed.TotalMilliseconds;
+            time.Reset();
+            time.Start();
             Graph graph = new Graph(edges, weights);
-            
+            time.Stop();
+            double t2 = time.Elapsed.TotalMilliseconds;
             return graph;
         }
     }
