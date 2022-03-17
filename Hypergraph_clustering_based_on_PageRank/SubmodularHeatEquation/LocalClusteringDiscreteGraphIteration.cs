@@ -27,7 +27,7 @@ namespace SubmodularHeatEquation
             bool[] best_cut = new bool[hypergraph.n];
 
             List<double> max_diff = new List<double>();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 Graph graph = BuildGraph(hypergraph, pt);
                 SparseMatrix Mt = ((1 - dt) * SparseMatrix.CreateDiagonal(hypergraph.n, hypergraph.n, 1.0)) + (dt * graph.A * graph.D_Inv);
