@@ -17,11 +17,14 @@ if __name__ == "__main__":
     
     methods = sorted([method for method in results])
     
+    max_conductance = 0
     for method in methods:
         for i, result in enumerate(results[method]):
             x_s = []
             y_s = []
             conductances_sorted = sorted(result['conductance'])
+            if conductances_sorted[-1] > max_conductance:
+                max_conductance = conductances_sorted[-1]
             x_s.append(0)
             y_s.append(conductances_sorted[0])
             for j in range(1, len(conductances_sorted)):
@@ -49,7 +52,7 @@ if __name__ == "__main__":
         
     for i, result in enumerate(results["Heat_equation"]):
         axes[i, 0].legend()
-        axes[i, 0].set_ylim(0)
+        axes[i, 0].set_ylim(0, max_conductance)
         
     plt.suptitle(args.json_file.replace(".json", "").\
         replace("Hypergraph_clustering_based_on_PageRank/output/output_conductances_",""))
