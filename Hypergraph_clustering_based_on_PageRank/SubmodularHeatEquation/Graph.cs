@@ -10,10 +10,10 @@ namespace SubmodularHeatEquation
     public class Graph
     {
         public List<Dictionary<int, double>> adj_list = new List<Dictionary<int, double>>();
-        public SparseMatrix M = new SparseMatrix(1, 1);
-        public SparseMatrix A = new SparseMatrix(1, 1);
-        public SparseMatrix D = new SparseMatrix(1, 1);
-        public SparseMatrix D_Inv = new SparseMatrix(1, 1);
+        public SparseMatrix _M = new SparseMatrix(1, 1);
+        public SparseMatrix _A = new SparseMatrix(1, 1);
+        public SparseMatrix _D = new SparseMatrix(1, 1);
+        public SparseMatrix _D_Inv = new SparseMatrix(1, 1);
         
         public int Degree(int v)
         {
@@ -52,6 +52,71 @@ namespace SubmodularHeatEquation
             }
         }
 
+        public SparseMatrix D
+        {
+            get
+            {
+                if (_D.NonZerosCount == 0)
+                {
+                    _D = SparseMatrix.CreateDiagonal(n, n, 1.0) ;
+                    for (int i = 0; i < n; i++)
+                        _D[i, i] = w_Degree(i);
+                }
+
+                return _D;
+            }
+        }
+
+        public SparseMatrix A
+        {
+            get
+            {
+                if (_A.NonZerosCount == 0)
+                {
+                    _A = new SparseMatrix(n, n);
+                    for (int i = 0; i < n; i++)
+                    {
+                        foreach (var v in adj_list[i])
+                        {
+                            _A[i, v.Key] += v.Value;
+                        }
+                    }
+                }
+
+                return _A;
+            }
+        }
+
+        public SparseMatrix D_Inv
+        {
+            get
+            {
+                if (_D_Inv.NonZerosCount == 0)
+                {
+                    _D_Inv = new SparseMatrix(n, n);
+                    for (int i = 0; i < n; i++)
+                    {
+                        _D_Inv[i, i] = (1.0 / w_Degree(i));
+                    }
+                }
+
+                return _D_Inv;
+            }
+        }
+
+        public SparseMatrix M
+        {
+            get
+            {
+                if (_M.NonZerosCount == 0)
+                {
+                    _M = 0.5 * (SparseMatrix.CreateDiagonal(n, n, 1.0) + (A * D_Inv));
+                }
+
+                return _M;
+            }
+        }
+
         public void AddEdge(List<int> edge, double w = 1)
         {
             while (Math.Max(edge[0], edge[1]) >= adj_list.Count)
@@ -73,29 +138,6 @@ namespace SubmodularHeatEquation
             {
                 AddEdge(edges[i], weights[i]);
             }
-
-            A = new SparseMatrix(n, n);
-            for (int i = 0; i < n; i++)
-            {
-                foreach (var v in adj_list[i])
-                {
-                    A[i, v.Key] += v.Value;
-                }
-            }
-
-            D = SparseMatrix.CreateDiagonal(n, n, 1.0) ;
-            for (int i = 0; i < n; i++)
-                D[i, i] = w_Degree(i);
-
-            D_Inv = new SparseMatrix(n, n);
-
-            for (int i = 0; i < n; i++)
-            {
-                D_Inv[i, i] = (1.0 / w_Degree(i));
-            }
-
-            M = 0.5 * (SparseMatrix.CreateDiagonal(n, n, 1.0) + (A * D_Inv));
         }
-
     }
 }
