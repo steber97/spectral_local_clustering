@@ -58,8 +58,13 @@ namespace SubmodularHeatEquation
             {
                 adj_list.Add(new Dictionary<int, double>());
             }
-            adj_list[edge[0]][edge[1]] = w; 
-            adj_list[edge[1]][edge[0]] = w;
+
+            if (!adj_list[edge[0]].ContainsKey(edge[1]))
+                adj_list[edge[0]][edge[1]] = 0;
+            if (!adj_list[edge[1]].ContainsKey(edge[0]))
+                adj_list[edge[1]][edge[0]] = 0;
+            adj_list[edge[0]][edge[1]] += w; 
+            adj_list[edge[1]][edge[0]] += w;
         }
 
         public Graph(List<List<int>> edges, List<double> weights)
