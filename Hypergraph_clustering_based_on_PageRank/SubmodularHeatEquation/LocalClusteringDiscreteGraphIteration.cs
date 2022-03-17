@@ -27,7 +27,8 @@ namespace SubmodularHeatEquation
             bool[] best_cut = new bool[hypergraph.n];
 
             List<double> max_diff = new List<double>();
-            for (int i = 0; i < 1000; i++)
+            int[] oldIndex = new int[hypergraph.n];
+            for (int i = 0; i < 100; i++)
             {
                 Graph graph = BuildGraph(hypergraph, pt);
                 SparseMatrix Mt = ((1 - dt) * SparseMatrix.CreateDiagonal(hypergraph.n, hypergraph.n, 1.0)) + (dt * graph.A * graph.D_Inv);
@@ -40,16 +41,9 @@ namespace SubmodularHeatEquation
                     min_conductance = conductance;
                     best_cut = cut;
                 }
-
                 pt_1.CopyTo(pt);
             }
 
-            Vector ICurve = new DenseVector(hypergraph.n);
-            pt.CopyTo(ICurve);
-            double total_probability = pt.Sum();
-            // Lovasz-Simonovits curve, useful to check that it actually converges when the number of iterations is high
-            for (int i = 0; i < hypergraph.n; i++)
-                ICurve[i] /= hypergraph.w_Degree(i);
             return best_cut;
         }
         
