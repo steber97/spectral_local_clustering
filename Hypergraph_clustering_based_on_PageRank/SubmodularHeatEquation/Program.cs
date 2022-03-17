@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MathNet.Numerics.LinearAlgebra.Double;
+using Newtonsoft.Json.Converters;
 
 namespace SubmodularHeatEquation
 {
@@ -32,11 +33,24 @@ namespace SubmodularHeatEquation
 
         public static void Main(string[] args)
         {
-            string filename = "../../instance/graphprod_LCC.txt";
-            // string filename = "../../instance/netscience_LCC.txt";
-            // string filename = "../../instance/dblp_kdd_LCC.txt";
-            // string filename = "../../instance/opsahl-collaboration_LCC.txt";
+            Dictionary<string, string> dataset_to_infile = new Dictionary<string, string>();
+            Dictionary<string, string> dataset_to_outfile = new Dictionary<string, string>();
+            dataset_to_infile["graphprod"] = "../../instance/graphprod_LCC.txt";
+            dataset_to_infile["netscience"] = "../../instance/netscience_LCC.txt";
+            dataset_to_infile["arxiv"] = "../../instance/opsahl-collaboration_LCC.txt";
+            dataset_to_infile["dblp_kdd"] = "../../instance/dblp_kdd_LCC.txt";
+            
+            dataset_to_outfile["graphprod"] = "../../../output/output_conductances_graphprod.csv";
+            dataset_to_outfile["netscience"] = "../../../output/output_conductances_netscience.csv";
+            dataset_to_outfile["arxiv"] = "../../../output/output_conductances_opsahl-collaboration.csv";
+            dataset_to_outfile["dblp_kdd"] = "../../../output/output_conductances_dblp_kdd.csv";
 
+            string dataset = args[0];
+
+
+            string filename = dataset_to_infile[dataset];
+            string outfile = dataset_to_outfile[dataset];
+            
             LocalClusteringHeatEquation lche = new LocalClusteringHeatEquation();
             LocalClusteringStar lcs = new LocalClusteringStar();
             LocalClusteringClique lcc = new LocalClusteringClique();
@@ -50,26 +64,31 @@ namespace SubmodularHeatEquation
             startingVertices = startingVertices.OrderBy(x => random.Next()).ToArray();
 
             string[] methods = {"Heat_equation", "Star", "Clique", "Discrete"};
-            double[,] conductances = new double[methods.Length, 50];             
+            double[,] conductances = new double[methods.Length, 50];
+            double[,] times = new double[methods.Length, 50];
+            LocalClusteringAlgorithm[] algos = {lche, lcs, lcc, lcdgi};
             for (int i = 0; i < 50; i++)
             {
                 // start from a random vertex.
                 int vInit = startingVertices[i];
-                bool[] cut_heat_eq = lche.LocalClustering(hypergraph, vInit, 0.0);
-                bool[] cut_star = lcs.LocalClustering(hypergraph, vInit, 0.0);
-                bool[] cut_clique = lcc.LocalClustering(hypergraph, vInit, 0.0);
-                bool[] cut_discrete = lcdgi.LocalClustering(hypergraph, vInit, 50.0);
-                conductances[0, i] = hypergraph.conductance(cut_heat_eq);
-                conductances[1, i] = hypergraph.conductance(cut_star);
-                conductances[2, i] = hypergraph.conductance(cut_clique);
-                conductances[3, i] = hypergraph.conductance(cut_discrete);
+                for (int j = 0; j < algos.Length; j++)
+                {
+                    var time = new System.Diagnostics.Stopwatch();
+                    time.Start();
+                    bool[] cut = algos[j].LocalClustering(hypergraph, vInit, 0.0);
+                    conductances[j, i] = hypergraph.conductance(cut);
+                    time.Stop();
+                    double ts = time.Elapsed.TotalMilliseconds;
+                    times[j, i] = ts;
+                }
             }
 
-            using (StreamWriter writer = new StreamWriter("../../../output/output_conductances.csv"))  
+            using (StreamWriter writer = new StreamWriter(outfile))  
             {
                 for (int i = 0; i < methods.Length; i++)
                 {
-                    writer.Write(methods[i]);
+                    writer.Write(methods[i] + "_conductance,");
+                    writer.Write(methods[i] + "_time");
                     if (i != methods.Length - 1)
                         writer.Write(",");
                 }
@@ -80,6 +99,8 @@ namespace SubmodularHeatEquation
                     for (int j = 0; j < methods.Length; j++)
                     {
                         line += conductances[j, i];
+                        line += ",";
+                        line += times[j, i];
                         if (j != methods.Length - 1)
                             line += ",";
                     }
