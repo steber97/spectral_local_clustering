@@ -33,37 +33,16 @@ namespace SubmodularHeatEquation
                 time.Start();
                 Graph graph = BuildGraph(hypergraph, pt);
                 time.Stop();
-                double t1 = time.Elapsed.TotalMilliseconds; 
                 
                 time.Reset();
                 time.Start();
-                SparseMatrix Mt = ((1 - dt) * SparseMatrix.CreateDiagonal(hypergraph.n, hypergraph.n, 1.0)) + (dt * graph.A * graph.D_Inv);
-                time.Stop();
-                double t2 = time.Elapsed.TotalMilliseconds;
-                
-                time.Reset();
-                time.Start();
-                Vector<double> pt_1 = Mt * pt;
-                time.Stop();
-                double t3 = time.Elapsed.TotalMilliseconds;
-
-                time.Reset();
-                time.Start();
-                Vector<double> pt_2 = new DenseVector(hypergraph.n);
+                Vector<double> pt_1 = new DenseVector(hypergraph.n);
                 for (int j = 0; j < hypergraph.n; j++)
                 {
-                    pt_2[j] = (1 - dt) * pt[j];
+                    pt_1[j] = (1 - dt) * pt[j];
                     foreach (var v in graph.adj_list[j])
                     {
-                        pt_2[j] += dt * pt[v.Key] * v.Value / graph.w_Degree(v.Key);
-                    }
-
-                    if (Math.Abs(pt_2[j] - pt_1[j]) > 1e-8)
-                    {
-                        double p1 = pt_1[j];
-                        double p2 = pt_2[j];
-                        double diff = pt_1[j] - pt_2[j];
-                        double a = 10.0;
+                        pt_1[j] += dt * pt[v.Key] * v.Value / graph.w_Degree(v.Key);
                     }
                 }
                 time.Stop();
