@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MathNet.Numerics.LinearAlgebra.Double;
-using Newtonsoft.Json.Converters;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SubmodularHeatEquation
 {
@@ -40,10 +41,10 @@ namespace SubmodularHeatEquation
             dataset_to_infile["arxiv"] = "../../instance/opsahl-collaboration_LCC.txt";
             dataset_to_infile["dblp_kdd"] = "../../instance/dblp_kdd_LCC.txt";
             
-            dataset_to_outfile["graphprod"] = "../../../output/output_conductances_graphprod.csv";
-            dataset_to_outfile["netscience"] = "../../../output/output_conductances_netscience.csv";
-            dataset_to_outfile["arxiv"] = "../../../output/output_conductances_opsahl-collaboration.csv";
-            dataset_to_outfile["dblp_kdd"] = "../../../output/output_conductances_dblp_kdd.csv";
+            dataset_to_outfile["graphprod"] = "../../../output/output_conductances_graphprod.json";
+            dataset_to_outfile["netscience"] = "../../../output/output_conductances_netscience.json";
+            dataset_to_outfile["arxiv"] = "../../../output/output_conductances_opsahl-collaboration.json";
+            dataset_to_outfile["dblp_kdd"] = "../../../output/output_conductances_dblp_kdd.json";
 
             string dataset = args[0];
 
@@ -61,52 +62,50 @@ namespace SubmodularHeatEquation
             for (int i = 0; i < hypergraph.n; i++)
                 startingVertices[i] = i;
             Random random = new Random();
+            // Take a random permutation of all vertices. We will take the first 50.
             startingVertices = startingVertices.OrderBy(x => random.Next()).ToArray();
 
             string[] methods = {"Heat_equation", "Star", "Clique", "Discrete"};
             double[,] conductances = new double[methods.Length, 50];
             double[,] times = new double[methods.Length, 50];
             LocalClusteringAlgorithm[] algos = {lche, lcs, lcc, lcdgi};
-            for (int i = 0; i < 50; i++)
+
+            List<List<double>> paramslist = new List<List<double>>()
             {
-                // start from a random vertex.
-                int vInit = startingVertices[i];
-                for (int j = 0; j < algos.Length; j++)
+                new List<double> {0.05, 0.1, 0.2, 0.5},
+                new List<double> {0.05, 0.1, 0.2, 0.5},
+                new List<double> {0.05, 0.1, 0.2, 0.5},
+                new List<double> {20, 10, 5, 2},
+            };
+
+            Dictionary<string, List<Result>> results = new Dictionary<string, List<Result>>();
+            for (int j = 0; j < algos.Length; j++)
+            {
+                results[methods[j]] = new List<Result>();
+                for (int param = 0; param < paramslist[0].Count; param++)
                 {
-                    var time = new System.Diagnostics.Stopwatch();
-                    time.Start();
-                    bool[] cut = algos[j].LocalClustering(hypergraph, vInit, 0.0);
-                    conductances[j, i] = hypergraph.conductance(cut);
-                    time.Stop();
-                    double ts = time.Elapsed.TotalMilliseconds;
-                    times[j, i] = ts;
+                    Result res = new Result();
+                    res.param = paramslist[j][param];
+                    
+                    for (int i = 0; i < 50; i++)
+                    {
+                        // start from a random vertex.
+                        int vInit = startingVertices[i];
+                        res.startVertices.Add(vInit);
+                        var time = new System.Diagnostics.Stopwatch();
+                        time.Start();
+                        bool[] cut = algos[j].LocalClustering(hypergraph, vInit, paramslist[j][param]);
+                        res.conductance.Add(hypergraph.conductance(cut));
+                        time.Stop();
+                        double ts = time.Elapsed.TotalMilliseconds;
+                        res.time.Add(ts);
+                    }
+                    results[methods[j]].Add(res);
                 }
             }
-
-            using (StreamWriter writer = new StreamWriter(outfile))  
-            {
-                for (int i = 0; i < methods.Length; i++)
-                {
-                    writer.Write(methods[i] + "_conductance,");
-                    writer.Write(methods[i] + "_time");
-                    if (i != methods.Length - 1)
-                        writer.Write(",");
-                }
-                writer.Write("\n");  
-                for (int i = 0; i < 50; i++)
-                {
-                    string line = "";
-                    for (int j = 0; j < methods.Length; j++)
-                    {
-                        line += conductances[j, i];
-                        line += ",";
-                        line += times[j, i];
-                        if (j != methods.Length - 1)
-                            line += ",";
-                    }
-                    writer.WriteLine(line);
-                }
-            }  
+            string json = JsonSerializer.Serialize(results);
+            File.WriteAllText(outfile, json);
+            
             
         }
 

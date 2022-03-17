@@ -9,10 +9,11 @@ namespace SubmodularHeatEquation
     {
         public bool[] LocalClustering(Hypergraph hypergraph, int startingVertex, double param)
         {
-            return Proposed_local_round(hypergraph, startingVertex);
+            double alpha = param;
+            return Proposed_local_round(hypergraph, startingVertex, alpha);
         }
         
-        public bool[] Proposed_local_round(Hypergraph hypergraph, int v_init)
+        public bool[] Proposed_local_round(Hypergraph hypergraph, int v_init, double alpha)
         {
 
             var time = new System.Diagnostics.Stopwatch();
@@ -26,12 +27,6 @@ namespace SubmodularHeatEquation
             const double dt = 1.0;
             const double T = 30.0;
 
-            var A_cand = new List<double>();
-            for (int i = 0; i <= Math.Log(n * m) / Math.Log(1 + eps); i++)
-            {
-                A_cand.Add(Math.Pow(1 + eps, i) / (n * m));
-            }
-
             var edge_size = new Dictionary<int, int>();
             for (int eid = 0; eid < hypergraph.m; eid++)
             {
@@ -40,28 +35,18 @@ namespace SubmodularHeatEquation
 
             double min_conductance = double.MaxValue;
             bool[] best_cut = new bool[hypergraph.n];
+            
+            var vec = CreateVector.Dense<double>(n);
 
-            foreach (double alpha in A_cand)
-            {
+            vec[v_init] = 1.0;
 
-                var vec = CreateVector.Dense<double>(n);
+            vec = Simulate_round(hypergraph, vec, v_init, dt, T, alpha);
 
-                vec[v_init] = 1.0;
-
-                vec = Simulate_round(hypergraph, vec, v_init, dt, T, alpha);
-
-                bool[] cut = hypergraph.ComputeBestSweepCut(vec);
-                double conductance = hypergraph.conductance(cut);
-                if (conductance < min_conductance)
-                {
-                    min_conductance = conductance;
-                    best_cut = cut;
-                }
-            }
+            bool[] cut = hypergraph.ComputeBestSweepCut(vec);
             time.Stop();
             TimeSpan ts = time.Elapsed;
 
-            return best_cut;
+            return cut;
         }
         
         public Vector<double> Simulate_round(Hypergraph H, Vector<double> vec, int v_init, double dt, double T, double alpha)

@@ -9,37 +9,24 @@ namespace SubmodularHeatEquation
 {
     public class LocalClusteringStar : LocalClusteringAlgorithm
     {
-        public bool[] LocalClustering(Hypergraph hypergraph, int startingVertex, double param)
+        public bool[] LocalClustering(Hypergraph hypergraph, int startingVertex, double alpha)
         {
             // Create start graph
             var time = new System.Diagnostics.Stopwatch();
             time.Start();
             Graph starGraph = createStarGraph(hypergraph);
-            var A_cand = new List<double>();
-            const double eps = 0.9;
-            for (int i = 0; i <= Math.Log(hypergraph.n * hypergraph.m) / Math.Log(1 + eps); i++)
-            {
-                A_cand.Add(Math.Pow(1 + eps, i) / (hypergraph.n * hypergraph.m));
-            }
             
             double min_conductance = double.MaxValue;
             bool[] best_cut = new bool[hypergraph.n];
-            foreach (double alpha in A_cand)
-            {
-                Vector<double> p0 = DenseVector.Create(starGraph.n, 0.0);
-                p0[startingVertex] = 1.0;
-                Vector<double> ppr = PageRank.ComputePageRank(starGraph.M, p0, alpha, 1e-8);
-                Vector<double> ppr_hypergraph = ppr.SubVector(0, hypergraph.n);
-                
-                bool[] cut = hypergraph.ComputeBestSweepCut(ppr_hypergraph);
-                double conductance = hypergraph.conductance(cut);
-                if (min_conductance > conductance)
-                {
-                    min_conductance = conductance;
-                    best_cut = cut;
-                }
-            }
-            return best_cut;
+            
+            Vector<double> p0 = DenseVector.Create(starGraph.n, 0.0);
+            p0[startingVertex] = 1.0;
+            Vector<double> ppr = PageRank.ComputePageRank(starGraph.M, p0, alpha, 1e-8);
+            Vector<double> ppr_hypergraph = ppr.SubVector(0, hypergraph.n);
+            
+            bool[] cut = hypergraph.ComputeBestSweepCut(ppr_hypergraph);
+            
+            return cut;
         }
 
         public Graph createStarGraph(Hypergraph hypergraph)

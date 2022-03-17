@@ -15,10 +15,10 @@ namespace SubmodularHeatEquation
 {
     public class LocalClusteringDiscreteGraphIteration : LocalClusteringAlgorithm
     {
-        public bool[] LocalClustering(Hypergraph hypergraph, int startingVertex, double param)
+        public bool[] LocalClustering(Hypergraph hypergraph, int startingVertex, double t)
         {
             double dt = 0.25;  // constant
-            int epochs = (int) param;
+            int epochs = (int) t;
             Vector<double> p0 = CreateVector.Dense(hypergraph.n, 0.0);
             p0[startingVertex] = 1.0;
 
@@ -27,7 +27,7 @@ namespace SubmodularHeatEquation
             double min_conductance = Double.MaxValue;
             bool[] best_cut = new bool[hypergraph.n];
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < epochs; i++)
             {
                 var time = new System.Diagnostics.Stopwatch();
                 time.Start();
