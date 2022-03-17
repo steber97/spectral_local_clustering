@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Web;
+using MathNet.Numerics.Integration;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.Optimization;
@@ -23,10 +25,13 @@ namespace SubmodularHeatEquation
             p0.CopyTo(pt);
             double min_conductance = Double.MaxValue;
             bool[] best_cut = new bool[hypergraph.n];
-            for (int i = 0; i < 1000; i++)
+
+            List<double> max_diff = new List<double>();
+            for (int i = 0; i < 10000; i++)
             {
                 Graph graph = BuildGraph(hypergraph, pt);
                 SparseMatrix Mt = ((1 - dt) * SparseMatrix.CreateDiagonal(hypergraph.n, hypergraph.n, 1.0)) + (dt * graph.A * graph.D_Inv);
+                
                 Vector<double> pt_1 = Mt * pt;
                 bool[] cut = hypergraph.ComputeBestSweepCut(pt_1);
                 double conductance = hypergraph.conductance(cut);
@@ -39,6 +44,12 @@ namespace SubmodularHeatEquation
                 pt_1.CopyTo(pt);
             }
 
+            Vector ICurve = new DenseVector(hypergraph.n);
+            pt.CopyTo(ICurve);
+            double total_probability = pt.Sum();
+            // Lovasz-Simonovits curve, useful to check that it actually converges when the number of iterations is high
+            for (int i = 0; i < hypergraph.n; i++)
+                ICurve[i] /= hypergraph.w_Degree(i);
             return best_cut;
         }
         
@@ -59,22 +70,53 @@ namespace SubmodularHeatEquation
                 // For every edge, take the simple edge max->min
                 int min_prob_node = hypergraph.edges[i][0];
                 int max_prob_node = hypergraph.edges[i].Last();
+                bool all_equal = true;
                 for (int j = 0; j < hypergraph.edges[i].Count; j++)
                 {
-                    if (pWeightedByDegree[hypergraph.edges[i][j]] < pWeightedByDegree[min_prob_node])
+                    if (Math.Abs(pWeightedByDegree[hypergraph.edges[i][j]] -
+                                 pWeightedByDegree[hypergraph.edges[i][0]]) > 1e-8)
                     {
-                        min_prob_node = hypergraph.edges[i][j];
-                    }
-
-                    if (pWeightedByDegree[hypergraph.edges[i][j]] > pWeightedByDegree[max_prob_node])
-                    {
-                        max_prob_node = hypergraph.edges[i][j];
+                        all_equal = false;
+                        break;
                     }
                 }
-                edges.Add(new List<int>(){min_prob_node, max_prob_node});
-                weights.Add(hypergraph.weights[i]);
-                edges_counter_per_node[min_prob_node] += hypergraph.weights[i];
-                edges_counter_per_node[max_prob_node] += hypergraph.weights[i];
+
+                if (!all_equal)
+                {
+                    
+                    for (int j = 0; j < hypergraph.edges[i].Count; j++)
+                    {
+                        if (pWeightedByDegree[hypergraph.edges[i][j]] < pWeightedByDegree[min_prob_node])
+                        {
+                            min_prob_node = hypergraph.edges[i][j];
+                        }
+
+                        if (pWeightedByDegree[hypergraph.edges[i][j]] > pWeightedByDegree[max_prob_node])
+                        {
+                            max_prob_node = hypergraph.edges[i][j];
+                        }
+                    }
+                    edges.Add(new List<int>(){min_prob_node, max_prob_node});
+                    weights.Add(hypergraph.weights[i]);
+                    edges_counter_per_node[min_prob_node] += hypergraph.weights[i];
+                    edges_counter_per_node[max_prob_node] += hypergraph.weights[i];
+                }
+                else
+                {
+                    if (hypergraph.edges[i].Count > 1)
+                    {
+                        min_prob_node = hypergraph.edges[i][0];
+                        max_prob_node = hypergraph.edges[i][1];
+                        edges.Add(new List<int>(){min_prob_node, max_prob_node});
+                        weights.Add(hypergraph.weights[i]);
+                        edges_counter_per_node[min_prob_node] += hypergraph.weights[i];
+                        edges_counter_per_node[max_prob_node] += hypergraph.weights[i];
+                    }
+                    else
+                    {
+                        // It is the same vertex, do nothing and wait to add a self loop at the end.
+                    }
+                }
             }
             
             // Add self loops.
@@ -88,7 +130,9 @@ namespace SubmodularHeatEquation
                 }
             }
             
-            return new Graph(edges, weights);
+            Graph graph = new Graph(edges, weights);
+            
+            return graph;
         }
     }
 }
