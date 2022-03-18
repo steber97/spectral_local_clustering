@@ -24,7 +24,7 @@ namespace SubmodularHeatEquation
         public double w_Degree(int v)
         {
             double sum = 0;
-            foreach (var neighbor_val in adj_list[v].Values)
+            foreach (double neighbor_val in adj_list[v].Values)
             {
                 sum += neighbor_val;
             }
@@ -117,7 +117,7 @@ namespace SubmodularHeatEquation
             }
         }
 
-        public void AddEdge(List<int> edge, double w = 1)
+        public void AddEdge(List<int> edge, double w = 1.0)
         {
             while (Math.Max(edge[0], edge[1]) >= adj_list.Count)
             {

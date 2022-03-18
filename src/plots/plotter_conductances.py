@@ -37,7 +37,7 @@ if __name__ == "__main__":
             if method == methods[0]:
                 axes[i, 0].set_ylabel("conductance")
                 axes[i, 0].set_title("Conductance for alpha={}, t={}".format(
-                    result['param'], 1/result['param']))
+                    result['param'], 2*1/result['param']))
                 if i != len(results[method]) - 1:
                     axes[i, 0].xaxis.set_visible(False)
             

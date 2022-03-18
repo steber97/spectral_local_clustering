@@ -15,10 +15,6 @@ namespace SubmodularHeatEquation
         
         public bool[] Proposed_local_round(Hypergraph hypergraph, int v_init, double alpha)
         {
-
-            var time = new System.Diagnostics.Stopwatch();
-            time.Start();
-
             int n = hypergraph.n;
             int m = hypergraph.m;
 
@@ -34,7 +30,6 @@ namespace SubmodularHeatEquation
             }
 
             double min_conductance = double.MaxValue;
-            bool[] best_cut = new bool[hypergraph.n];
             
             var vec = CreateVector.Dense<double>(n);
 
@@ -43,8 +38,6 @@ namespace SubmodularHeatEquation
             vec = Simulate_round(hypergraph, vec, v_init, dt, T, alpha);
 
             bool[] cut = hypergraph.ComputeBestSweepCut(vec);
-            time.Stop();
-            TimeSpan ts = time.Elapsed;
 
             return cut;
         }

@@ -10,7 +10,6 @@ namespace SubmodularHeatEquation
         public bool[] LocalClustering(Hypergraph hypergraph, int startingVertex, double param)
         {
             Graph cliqueGraph = CreateCliqueGraph(hypergraph);
-            const double eps = 0.9;
             double min_conductance = double.MaxValue;
             double alpha = param;
             Vector<double> p0 = DenseVector.Create(cliqueGraph.n, 0.0);

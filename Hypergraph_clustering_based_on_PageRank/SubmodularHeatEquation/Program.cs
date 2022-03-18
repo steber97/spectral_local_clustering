@@ -14,6 +14,7 @@ namespace SubmodularHeatEquation
     {
         public static double Sqr(double v) { return v * v; }
         const double dt = 0.01;
+        private const int repetitions = 50;
 
 
         public static Vector<double> Integrate(Func<double, Vector<double>> f, double T)
@@ -49,7 +50,7 @@ namespace SubmodularHeatEquation
             string dataset = args[0];
 
 
-            string filename = dataset_to_infile[dataset];
+            string infile = dataset_to_infile[dataset];
             string outfile = dataset_to_outfile[dataset];
             
             LocalClusteringHeatEquation lche = new LocalClusteringHeatEquation();
@@ -57,27 +58,29 @@ namespace SubmodularHeatEquation
             LocalClusteringClique lcc = new LocalClusteringClique();
             LocalClusteringDiscreteGraphIteration lcdgi = new LocalClusteringDiscreteGraphIteration();
             
-            Hypergraph hypergraph = Hypergraph.Open(filename);
+            Hypergraph hypergraph = Hypergraph.Open(infile);
+            
+            // Take a random permutation of the starting vertices. We are going to use the first this.repetitions (50).
             int[] startingVertices = new int[hypergraph.n];
             for (int i = 0; i < hypergraph.n; i++)
                 startingVertices[i] = i;
             Random random = new Random();
-            // Take a random permutation of all vertices. We will take the first 50.
             startingVertices = startingVertices.OrderBy(x => random.Next()).ToArray();
 
+            // These two lists must be ordered in the same way.
             string[] methods = {"Heat_equation", "Star", "Clique", "Discrete"};
-            double[,] conductances = new double[methods.Length, 50];
-            double[,] times = new double[methods.Length, 50];
             LocalClusteringAlgorithm[] algos = {lche, lcs, lcc, lcdgi};
 
-            List<List<double>> paramslist = new List<List<double>>()
+            Vector<double> alphas = CreateVector.Dense<double>(new double[]{0.05, 0.1, 0.2, 0.5});
+            List<Vector<double>> paramslist = new List<Vector<double>>()
             {
-                new List<double> {0.05, 0.1, 0.2, 0.5},
-                new List<double> {0.05, 0.1, 0.2, 0.5},
-                new List<double> {0.05, 0.1, 0.2, 0.5},
-                new List<double> {20, 10, 5, 2},
+                alphas,  // alpha
+                alphas,  // alpha
+                alphas,  // alpha
+                (1.0 / alphas) * 2.0,         // 1/alpha
             };
 
+            // map method -> list of results ordered by alpha value
             Dictionary<string, List<Result>> results = new Dictionary<string, List<Result>>();
             for (int j = 0; j < algos.Length; j++)
             {
@@ -87,28 +90,30 @@ namespace SubmodularHeatEquation
                     Result res = new Result();
                     res.param = paramslist[j][param];
                     
-                    for (int i = 0; i < 50; i++)
+                    for (int i = 0; i < repetitions; i++)
                     {
                         // start from a random vertex.
                         int vInit = startingVertices[i];
                         res.startVertices.Add(vInit);
                         var time = new System.Diagnostics.Stopwatch();
                         time.Start();
+                        // Compute the cut using any local clustering algorithm.
                         bool[] cut = algos[j].LocalClustering(hypergraph, vInit, paramslist[j][param]);
-                        res.conductance.Add(hypergraph.conductance(cut));
                         time.Stop();
+                        // Compute the conductance for the given cut.
+                        res.conductance.Add(hypergraph.conductance(cut));
                         double ts = time.Elapsed.TotalMilliseconds;
                         res.time.Add(ts);
                     }
                     results[methods[j]].Add(res);
                 }
             }
+            
+            // Print the json results file.
             string json = JsonSerializer.Serialize(results);
             File.WriteAllText(outfile, json);
             
-            
         }
-
-
+        
     }
 }
