@@ -15,37 +15,30 @@ namespace SubmodularHeatEquation
         public Dictionary<List<int>, int> ID = new Dictionary<List<int>, int>();
         public Dictionary<int, List<int>> ID_rev = new Dictionary<int, List<int>>();
         
-        public static Hypergraph RandomHypergraph(int n, int m, int k)
-        {
-            var H = new Hypergraph();
-
-            for (int i = 0; i < m; i++)
-            {
-                var edge = new List<int>();
-                for (int j = 0; j < k; j++)
-                {
-                    int v = (int)(Util.Xor128() % n);
-                    edge.Add(v);
-                }
-                edge = edge.Distinct().ToList();
-                H.AddEdge(edge);
-            }
-            return H;
-        }
-
+        /**
+         * Return the number of incident edges (NOT the total weight of the incident edges).
+         * In order to obtain the total weight, see w_Degree()
+         */
         public int Degree(int v)
         {
             return incident_edges[v].Count;
         }
 
+        /**
+         * Return total weight volume of the hypergraph, namely the
+         * sum of all vertex weights.
+         */
         public double TotalVolume()
         {
             double res = 0.0;
             for (int i = 0; i < n; i++)
-                res += Degree(i);
+                res += w_Degree(i);
             return res;
         }
 
+        /**
+         * Return the total weight of the incident edges.
+         */
         public double w_Degree(int v)
         {
             double sum = 0;
@@ -56,6 +49,9 @@ namespace SubmodularHeatEquation
             return sum;
         }
 
+        /**
+         * Number of nodes.
+         */
         public int n
         {
             get
@@ -64,6 +60,9 @@ namespace SubmodularHeatEquation
             }
         }
 
+        /**
+         * Number of edges.
+         */
         public int m
         {
             get
@@ -72,22 +71,12 @@ namespace SubmodularHeatEquation
             }
         }
 
-        public void AddEdge(List<int> edge, double w = 1)
-        {
-            int eid = edges.Count;
-            edges.Add(edge);
-            foreach (var v in edge)
-            {
-                while (v >= incident_edges.Count)
-                {
-                    incident_edges.Add(new List<int>());
-                }
-                incident_edges[v].Add(eid);
-            }
-            weights[eid] = w;
-            ID[edge] = eid;
-        }
-
+        /**
+         * Read a hypergraph from file.
+         * Nodes are from 0 to n-1.
+         * Every line of the file represents a hyperedge as a list of nodes,
+         * the last number being the weight of the hyperedge.
+         */
         public static Hypergraph Open(string fn)
         {
             var fs = new FileStream(fn, FileMode.Open);
@@ -112,7 +101,8 @@ namespace SubmodularHeatEquation
                     }
                 }
                 edges.Add(edge);
-                weights.Add(double.Parse(words.Last()));
+                // last number in every line is the edge weight.
+                weights.Add(double.Parse(words.Last()));  
             }
 
             var H = new Hypergraph();
@@ -137,6 +127,12 @@ namespace SubmodularHeatEquation
         }
         public static double Sqr(double v) { return v * v; }
 
+        /**
+         * Compute the hypergraph conductance as
+         * phi(S) = volume edges cut / min(volume(S), volume(V - S))
+         * where the edge e is cut if there is at least one node v\in e
+         * s.t. v \in S and another u \in e s.t. u \notin S
+         */
         public double conductance(bool[] cut)
         {
             double volume_cut = 0.0;
@@ -152,7 +148,7 @@ namespace SubmodularHeatEquation
                     else
                         side_false = true;
                 }
-
+                // The edge is cut if there is at least one node in both sides of the cut.
                 if (side_false && side_true)
                     volume_cut += weights[i];
             }
@@ -166,6 +162,11 @@ namespace SubmodularHeatEquation
             return volume_cut / Math.Min(volume_partition, TotalVolume() - volume_partition);
         }
         
+        /**
+         * Given a probability vector, return the best sweep cut according to the
+         * quantity probability(u)/w_Degree(u).
+         * Best sweep cut is the one with lowest conductance.
+         */
         public bool[] ComputeBestSweepCut(Vector<double> p)
         {
             Vector<double> vec = DenseVector.Create(p.Count, 0.0);
@@ -182,14 +183,16 @@ namespace SubmodularHeatEquation
             {
                 vec[i] /= w_Degree(i);
             }
-
+            
+            // sort by increasing values of prob(u) / vol(u)
             int[] index = Enumerable.Range(0, n).ToArray<int>();
             Array.Sort<int>(index, (a, b) => vec[a].CompareTo(vec[b]));
-
+            // Reverse the array (so that it is sorted in decreasing order).
             Array.Reverse(index);
 
             double vol_V = 0;
-            for (int i = 0; i < n; i++) vol_V += w_Degree(i);
+            for (int i = 0; i < n; i++) 
+                vol_V += w_Degree(i);
 
             var num_contained_nodes = new Dictionary<int, int>();
             for (int eid = 0; eid < m; eid++)
@@ -204,6 +207,8 @@ namespace SubmodularHeatEquation
             foreach (int i in index)
             {
                 vol_S += w_Degree(i);
+                // Return cuts smaller than 1/10 of the total volume.
+                // See paper https://arxiv.org/pdf/2006.08302.pdf variable \mu 
                 if (vol_S <= vol_V / 10.0)
                 {
                     foreach (var e in incident_edges[i])
@@ -218,29 +223,27 @@ namespace SubmodularHeatEquation
                         }
                         num_contained_nodes[e] += 1;
                     }
+                    
+                    // Since volume of S is at most 1/10 of Volume of V, it is worthless to take the min.
                     double conductance = cut_val / Math.Min(vol_S, vol_V - vol_S);
                     //Console.WriteLine($"{cut_val}, {vol_S}, {vol_V}, {conductance}");
                     if (conductance < min_conductance)
                     {
                         min_conductance = conductance;
                         best_index = i;
-                        for (int j = 0; j < best_cut.Length; j++)
-                        {
-                            best_cut[j] = false;
-                        }
-
-                        foreach (var j in index)
-                        {
-                            best_cut[j] = true;
-                            if (j == i)
-                                break;
-                        }
                     }
                 }
                 else
                 {
                     break;
                 }
+            }
+            // Update the best cut, set to true all indices until we reach the best_index.
+            foreach (int i in index)
+            {
+                best_cut[i] = true;
+                if (i == best_index)
+                    break;
             }
             return best_cut;
         }
