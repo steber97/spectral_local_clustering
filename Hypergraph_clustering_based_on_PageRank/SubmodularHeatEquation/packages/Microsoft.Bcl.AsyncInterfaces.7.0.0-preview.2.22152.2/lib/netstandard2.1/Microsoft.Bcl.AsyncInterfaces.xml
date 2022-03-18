@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.Bcl.AsyncInterfaces</name>
+    </assembly>
+    <members>
+        <member name="T:System.Runtime.InteropServices.GeneratedDllImportAttribute">
+            <summary>
+            Indicates that method will be generated at compile time and invoke into an unmanaged library entry point
+            </summary>
+        </member>
+    </members>
+</doc>
