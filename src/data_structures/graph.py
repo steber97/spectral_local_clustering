@@ -4,7 +4,7 @@ from re import A
 from typing import List, Tuple
 import numpy as np
 import pandas as pd
-from data_structures.merge_find_set import MergeFindSet
+from src.data_structures.merge_find_set import MergeFindSet
 from tqdm import tqdm
 import time
 from scipy.sparse import csr_matrix, identity, dia_matrix

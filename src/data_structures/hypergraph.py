@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from typing import List
-from spectral_local_clustering.src.data_structures.merge_find_set import MergeFindSet
+from src.data_structures.merge_find_set import MergeFindSet
 
 
 class HyperNode:
@@ -63,6 +63,10 @@ class HyperGraph:
         for he in self.hyperedges:
             for hn in he.hypernodes:
                 self.adj_list[hn.id].append(he)
+
+        self.deg_by_node = [0 for i in range(len(self.hypernodes))]
+        for hn in self.hypernodes:
+            self.deg_by_node[hn.id] = np.sum([he.weight for he in self.adj_list[hn.id]])
 
     def get_CCs(self) -> List[List[HyperNode]]:
         hn_mfs = {}
@@ -155,3 +159,18 @@ class HyperGraph:
             if volume_1 >= stop_volume:
                 break  # Stop early.
         return best_cut
+    
+    @staticmethod
+    def read_hypergraph(file: str):
+        hypernodes = []
+        hyperedges = []
+        with open(file) as f:
+            for l in f:
+                hyperedge = [int(hn) for hn in l.split()[:-1]]
+                weight = float(l.split()[-1])
+                for hn in hyperedge:
+                    for j in range(len(hypernodes), hn + 1):
+                        hypernodes.append(HyperNode(j))
+                hyperedges.append(HyperEdge([hypernodes[j] for j in hyperedge], weight))
+
+        return HyperGraph(hypernodes, hyperedges)
