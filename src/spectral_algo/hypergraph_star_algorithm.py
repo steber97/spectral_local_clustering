@@ -19,8 +19,8 @@ class HyperGraphLocalClusteringByStar:
         for i, he in enumerate(hypergraph.hyperedges):
             nodes.append(Node(len(hypergraph.hypernodes) + i, len(hypergraph.hypernodes) + i))
             for hn in he.hypernodes:
-                edges.append(Edge(start=nodes[hn.id], end=nodes[-1], weight=he.weight))
-                edges.append(Edge(start=nodes[-1], end=nodes[hn.id], weight=he.weight))
+                edges.append(Edge(start=nodes[hn.id], end=nodes[-1], weight=he.weight / len(he.hypernodes)))
+                edges.append(Edge(start=nodes[-1], end=nodes[hn.id], weight=he.weight / len(he.hypernodes)))
         self.graph = Graph(nodes, edges)
         print("Star graph, nodes: {}, edges: {}, time to create: {}s".format(len(nodes), len(edges), time.time() - time_start))
 
@@ -28,14 +28,13 @@ class HyperGraphLocalClusteringByStar:
         """
 
         """
-        best_cut = None
-        best_conductance = None
         # Center the probability in the starting vertex.
         p_0 = np.zeros(len(self.graph.nodes))
         p_0[v.id] = 1.0
         ppr = pagerank(self.graph.getM(), p_0, delta=1e-8, alpha=alpha)
         ppr_only_hypergraph_nodes = ppr[:len(hypergraph.hypernodes)]
+        ppr_only_hypergraph_nodes /= ppr_only_hypergraph_nodes.sum()
         # Take sweep on the ppr, as long as the cut is not larger than mu * vol(H)
         cut = hypergraph.compute_lovasz_simonovits_sweep(ppr_only_hypergraph_nodes, mu=mu)
-        
+
         return cut
