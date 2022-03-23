@@ -16,8 +16,6 @@ namespace SubmodularHeatEquation
             time.Start();
             Graph starGraph = createStarGraph(hypergraph);
             
-            double min_conductance = double.MaxValue;
-            
             // Initialize the probability vector centered in startingVertex (local clustering).
             Vector<double> p0 = DenseVector.Create(starGraph.n, 0.0);
             p0[startingVertex] = 1.0;

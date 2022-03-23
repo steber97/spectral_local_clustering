@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import pandas as pd
 from typing import List
@@ -20,12 +22,14 @@ class HyperNode:
     def __repr__(self) -> str:
         return str(self.id)
 
+
 class HyperEdge:
-    def __init__(self, hypernodes: List[HyperNode], weight: float) -> None:
+    def __init__(self, hypernodes: List[HyperNode], weight: float, _id: int) -> None:
         self.hypernodes = set()
         for hn in hypernodes:
             self.hypernodes.add(hn)
         self.weight = weight
+        self.id = _id
 
     def __eq__(self, __o: object) -> bool:
         if len(self.hypernodes) != len(__o.hypernodes):
@@ -122,13 +126,11 @@ class HyperGraph:
         @param p: probability vector
         @param mu: max fraction of the volume taken by the sweep S_j. Usually used when computing local sweep cuts.
         """
-        hypernodes_sorted_by_probability = []
-        for i, hypernode in enumerate(self.hypernodes):
-            degree = np.sum([he.weight for he in self.adj_list[hypernode.id]])
-            hypernodes_sorted_by_probability.append((hypernode, p[i] / degree))
+        hypernodes_sorted_by_probability = zip(self.hypernodes, p / self.deg_by_node)
         hypernodes_sorted_by_probability = sorted(hypernodes_sorted_by_probability, 
                                                   key=lambda x: (x[1], -x[0].id), 
                                                   reverse=True)
+
         S_j = []
         bipartition = np.array([False for i in range(len(self.hypernodes))])
         best_cut = None
@@ -137,6 +139,8 @@ class HyperGraph:
         volume_1 = 0.0
         volume_2 = np.sum([np.sum([he.weight for he in self.adj_list[hn.id]]) for hn in self.hypernodes])
         stop_volume = mu * volume_2  # When volume_1 gets to stop_volume, we need to stop.
+        best_index = None
+        edge_counter_per_bipartition = np.zeros(len(self.hyperedges))
         for i in range(len(hypernodes_sorted_by_probability) - 1):
             hn = hypernodes_sorted_by_probability[i][0]
             hn: HyperNode
@@ -144,20 +148,24 @@ class HyperGraph:
             # The edge needs to be added or removed from the crossing hyperedges, if:
             for he in self.adj_list[hn.id]:
                 he: HyperEdge
-                bipartitions_in_hyperedge = np.array([bipartition[hn2.id] for hn2 in he.hypernodes if hn2.id != hn.id])
+                bipartitions_in_hyperedge = edge_counter_per_bipartition[he.id]
                 # Notice that bipartition[hn.id] is always true!!
-                if np.sum(bipartitions_in_hyperedge) == 0:
+                if bipartitions_in_hyperedge == 0:
                         hyperedges_crossing += he.weight
-                if np.sum(bipartitions_in_hyperedge) == len(bipartitions_in_hyperedge):
+                if bipartitions_in_hyperedge == len(he.hypernodes):
                         hyperedges_crossing -= he.weight
-            volume_1 += np.sum([he.weight for he in self.adj_list[hn.id]])
-            volume_2 -= np.sum([he.weight for he in self.adj_list[hn.id]])
+                edge_counter_per_bipartition[he.id] += 1
+            volume_1 += self.deg_by_node[hn.id]
+            volume_2 -= self.deg_by_node[hn.id]
             conductance = hyperedges_crossing / min(volume_1, volume_2)
             if best_conductance is None or best_conductance > conductance:
-                best_cut = bipartition.copy()
+                best_index = i
                 best_conductance = conductance
             if volume_1 >= stop_volume:
                 break  # Stop early.
+        best_cut = np.array([False for i in range(len(self.hypernodes))])
+        for i in range(best_index + 1):
+            best_cut[hypernodes_sorted_by_probability[i][0].id] = True
         return best_cut
     
     @staticmethod
@@ -165,12 +173,12 @@ class HyperGraph:
         hypernodes = []
         hyperedges = []
         with open(file) as f:
-            for l in f:
+            for i, l in enumerate(f):
                 hyperedge = [int(hn) for hn in l.split()[:-1]]
                 weight = float(l.split()[-1])
                 for hn in hyperedge:
                     for j in range(len(hypernodes), hn + 1):
                         hypernodes.append(HyperNode(j))
-                hyperedges.append(HyperEdge([hypernodes[j] for j in hyperedge], weight))
+                hyperedges.append(HyperEdge([hypernodes[j] for j in hyperedge], weight, _id=i))
 
         return HyperGraph(hypernodes, hyperedges)

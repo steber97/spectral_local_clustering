@@ -1,3 +1,5 @@
+import time
+
 from datasets.hypergraphs.d_regular_r_uniform.read_graph import read_graph
 import numpy as np
 from src.data_structures.hypergraph import HyperEdge, HyperGraph, HyperNode
@@ -77,31 +79,29 @@ class HyperGraphLocalClusteringDiscrete:
         graph = Graph(nodes, edges)
         # print("Time for graph initialization: {}".format(time.time() - time_start))
         return graph, map_hyperedge_edge
+
+    def perform_one_iteration(self, hypergraph: HyperGraph, pt: np.array, mu: float):
+        graph_t, map_hyperedge_edge_t = self.build_graph(hypergraph=hypergraph, p=pt)
+        ls_sweep = hypergraph.compute_lovasz_simonovits_sweep(pt, mu)
+        conductance = hypergraph.compute_conductance(ls_sweep)
+        # Evolve pt
+        Mt = ((1 - self.dt) * (identity(len(graph_t.nodes))) + self.dt * graph_t.getA() * graph_t.getDInv())
+        p_t_dt = Mt.dot(pt)
+        return ls_sweep, conductance, p_t_dt
     
     def hypergraph_local_clustering(self, hypergraph: HyperGraph, v: HyperNode, epochs: float, mu: float = 0.1) -> np.array:
         p_0 = np.zeros(len(hypergraph.hypernodes))
         p_0[v.id] = 1.0
-        # epochs = 100
         pt = p_0.copy()
         best_cut = None
         best_conductance = 1.1
         conductances = []
-        delta_p_weighted_by_d = []
         for epoch in range(int(epochs)):
-            graph_t, map_hyperedge_edge_t = self.build_graph(hypergraph=hypergraph, p=pt)
-            ls_sweep = hypergraph.compute_lovasz_simonovits_sweep(pt, mu)
-            conductance = hypergraph.compute_conductance(ls_sweep)
+            cut, conductance, p_t_dt = self.perform_one_iteration(hypergraph, pt, mu)
             conductances.append(conductance)
             if best_cut is None or conductance < best_conductance:
-                best_cut = ls_sweep
+                best_cut = cut
                 best_conductance = conductance
-            pt_d = pt / hypergraph.deg_by_node
-            pt_d_index = [(i, p) for i, p in zip(range(len(pt_d)), pt_d)]
-            pt_d_index_sorted = sorted(pt_d_index, key=lambda x: x[1], reverse=True)
-            delta_p_weighted_by_d.append(np.max(pt_d) - np.min(pt_d))
-            # Evolve pt
-            Mt = ((1 - self.dt) * (identity(len(graph_t.nodes))) + self.dt * graph_t.getA() * graph_t.getDInv())
-            p_t_dt = Mt.dot(pt)
             pt = p_t_dt
 
         conductances_distinc_value_per_iter = []
@@ -112,7 +112,6 @@ class HyperGraphLocalClusteringDiscrete:
             elif np.abs(last_cond - conductance) > 10e-10:
                 conductances_distinc_value_per_iter.append((conductance, i))
                 last_cond = conductance
-        min_delta = np.min(delta_p_weighted_by_d)
 
         return best_cut
 
