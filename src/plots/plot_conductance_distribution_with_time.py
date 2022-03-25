@@ -19,6 +19,7 @@ if __name__ == "__main__":
         'graphprod', 'netscience', 'arxiv', 'dblp_kdd', 'dbpedia_writer',
         "n_400_d_10_r_8"
     ])
+    args.add_argument("--diff", type=float)
     args = args.parse_args()
     hypergraph = HyperGraph.read_hypergraph(input_dataset_map[args.dataset])
 
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     conductances = []
 
     start = time.time()
-    delta = 1e-8
+    delta = args.diff
     while True:
         cut, conductance, pt_1 = solver.perform_one_iteration(hypergraph=hypergraph, pt=pt, mu=mu)
 
