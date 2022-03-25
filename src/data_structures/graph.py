@@ -60,7 +60,7 @@ class Graph:
         
         self._A = None  # See method getA()
         self._D = None  # See method getD()
-        self._density_list = None  # See method getDensityList()
+        self._degree_list = None  # See method getDensityList()
         self._D_inv_sqrt = None  # See method getDInvSqrt()
         self._D_inv = None  # See method getDInv()
         self._L = None  # See method getL()
@@ -83,28 +83,28 @@ class Graph:
                 (len(self.nodes), len(self.nodes)))
         return self._A
         
-    def getDensityList(self):
-        if self._density_list is None:
+    def getDegreeList(self):
+        if self._degree_list is None:
             # Sum by row
-            self._density_list = np.array(self.getA().sum(axis=1)).flatten()
-        return self._density_list
+            self._degree_list = np.array(self.getA().sum(axis=1)).flatten()
+        return self._degree_list
     
     def getD(self):
         if self._D is None:
             # Offset is simply zero.
-            self._D = dia_matrix((self.getDensityList(), [0]), (len(self.nodes), len(self.nodes)))
+            self._D = dia_matrix((self.getDegreeList(), [0]), (len(self.nodes), len(self.nodes)))
         return self._D
 
     def getDInvSqrt(self):
         if self._D_inv_sqrt is None: 
             # Initialize D^{-0.5}
-            self._D_inv_sqrt = dia_matrix((1 / np.sqrt(self.getDensityList()), [0]), (len(self.nodes), len(self.nodes)))
+            self._D_inv_sqrt = dia_matrix((1 / np.sqrt(self.getDegreeList()), [0]), (len(self.nodes), len(self.nodes)))
         return self._D_inv_sqrt
 
     def getDInv(self):
         if self._D_inv is None: 
             # Initialize D^{-1}
-            self._D_inv = dia_matrix((1 / self.getDensityList(), [0]), (len(self.nodes), len(self.nodes)))
+            self._D_inv = dia_matrix((1 / self.getDegreeList(), [0]), (len(self.nodes), len(self.nodes)))
         return self._D_inv
 
     def getL(self):
@@ -175,9 +175,9 @@ class Graph:
         vol_S_compl = 0.0
         for node in self.nodes:
             if bipartition[node.id]:
-                vol_S += self.D[node.id, node.id]
+                vol_S += self.getDegreeList()[node.id]
             else:
-                vol_S_compl += self.D[node.id, node.id]
+                vol_S_compl += self.getDegreeList()[node.id]
         assert vol_S_compl > 0 and vol_S > 0
         return crossing_edges / min(vol_S, vol_S_compl)
 
@@ -254,23 +254,44 @@ class Graph:
         """
         x = []
         y = []
+        starting_edges_sorted_by_rho = []
         edge_rho = []
         for node in self.nodes:
-            probability_edge = 0.0
             for edge in self.adj_list[node.id]:
-                probability_edge += edge.weight
-                edge_rho.append((edge, probabilities[node.id] / self.D[node.id, node.id]))
-            probability_edge /= self.D[node.id, node.id]
-            assert np.abs(probability_edge - 1.0) < 0.00001
+                edge_rho.append((edge, probabilities[node.id] / self.getDegreeList()[node.id]))
         edges_sorted = sorted(edge_rho, key=lambda x: (x[1], x[0].start.id), reverse=True)
         x_iter = 0
         y_iter = 0
-        assert np.abs(np.sum(self.A) - np.sum(np.diag(self.D))) < 0.0001
+        assert np.abs(np.sum(self.getA()) - np.sum(self.getDegreeList())) < 0.0001
         for edge, rho in edges_sorted:
             edge: Edge
             x_iter += edge.weight
             y_iter += rho * edge.weight
             x.append(x_iter)
             y.append(y_iter)
+            starting_edges_sorted_by_rho.append(edge)
         
-        return x, y
+        return x, y, starting_edges_sorted_by_rho
+
+    def I_t(self, x: np.array, y: np.array, k: float):
+        """
+        Given the list of x's and y's of the Lovasz-Simonovits curve (computed with compute_lovasz_simonovits_curve)
+        return the value of I_t for the given value k.
+
+        Parameters
+        ----------
+        x
+        y
+        k
+
+        Returns
+        -------
+
+        """
+        # Do a linear search for the moment:
+        # Then it can be improved with a binary search.
+        assert x[-1] >= k >= 0
+        for i in range(len(x)-1):
+            if k >= x[i] and k <= x[i+1]:
+                return y[i] + (k - x[i]) * (y[i+1] - y[i])
+        assert False  # This should never happen really.

@@ -19,8 +19,15 @@ def input_loader_graph(dataset_name: str):
     return read_graph
 
 
+input_dataset_map = {
+    "graphprod": "Hypergraph_clustering_based_on_PageRank/instance/graphprod_LCC.txt",
+    "netscience": "Hypergraph_clustering_based_on_PageRank/instance/netscience_LCC.txt",
+    "arxiv": "Hypergraph_clustering_based_on_PageRank/instance/opsahl-collaboration_LCC.txt"
+}
+
+
 def input_loader_hypergraph(dataset_name: str):
-    from spectral_local_clustering.datasets.hypergraphs.hypergraph_pagerank_paper.read_hypergraph import read_hypergraph
+    from datasets.hypergraphs.hypergraph_pagerank_paper.read_hypergraph import read_hypergraph
     if dataset_name == "network_theory":
         return read_hypergraph("datasets/hypergraphs/hypergraph_pagerank_paper/network_theory/download.tsv.dimacs10-netscience/dimacs10-netscience/out.dimacs10-netscience",
                                skiprows=1)
@@ -33,6 +40,10 @@ def input_loader_hypergraph(dataset_name: str):
     if dataset_name == "dbpedia_writer":
         return read_hypergraph("datasets/hypergraphs/hypergraph_pagerank_paper/dbpedia_writer/download.tsv.dbpedia-writer/out.dbpedia-writer",
                                skiprows=2)
-    from spectral_local_clustering.datasets.hypergraphs.d_regular_r_uniform.read_graph import read_graph as read_uniform_regular_hypergraph
+    from datasets.hypergraphs.d_regular_r_uniform.read_graph import read_graph as read_uniform_regular_hypergraph
     if dataset_name == "n_400_d_10_r_8":
         return read_uniform_regular_hypergraph("datasets/hypergraphs/d_regular_r_uniform/n_400_d_10_r_8.txt")
+
+    from src.data_structures.hypergraph import HyperGraph
+    if dataset_name == "graphprod" or dataset_name == "netscience" or dataset_name == "arxiv":
+        return HyperGraph.read_hypergraph(input_dataset_map[dataset_name])

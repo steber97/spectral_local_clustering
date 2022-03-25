@@ -41,7 +41,7 @@ if __name__ == "__main__":
     start_time = time.time()
     # hypergraph = read_graph("datasets/hypergraphs/d_regular_r_uniform/n_6_d_2_r_4.txt")
     # hypergraph = read_graph("datasets/hypergraphs/d_regular_r_uniform/n_400_d_10_r_8.txt")
-    hypergraph = HyperGraph.read_hypergraph(input_dataset_map[args.dataset])
+    hypergraph = input_loader_hypergraph(args.dataset)
 
     print("Input taken in {}s".format(time.time() - start_time))
     mu = 0.1
@@ -61,12 +61,12 @@ if __name__ == "__main__":
     repetitions = 50
     results = {}
     starting_vertices = np.random.permutation(range(len(hypergraph.hypernodes)))
-    for i, algo in enumerate(solvers):
+    for i, algo in tqdm(enumerate(solvers)):
         result = []
         for param in params_list[i]:
             res = Result()
             res.param = param
-            for rep in tqdm(range(repetitions)):
+            for rep in range(repetitions):
                 v = hypergraph.hypernodes[starting_vertices[rep]]
                 res.startVertices.append(v.id)
                 start = time.time()
