@@ -312,10 +312,10 @@ class Graph:
         -------
 
         """
-        nodes_sorted_by_degree = sorted(self.nodes, key=lambda x: self.getDegreeList()[x.id], reverse=True)
+        nodes_sorted_by_degree = sorted(self.nodes, key=lambda x: self.getDegreeList()[x.id], reverse=False)
         tot_volume = 0
         for i in range(len(nodes_sorted_by_degree)):
             if tot_volume <= k and tot_volume + self.getDegreeList()[nodes_sorted_by_degree[i].id] >= k:
-                return i + 1 / (k - tot_volume)
+                return i + (k - tot_volume) / (self.getDegreeList()[nodes_sorted_by_degree[i].id])
                 # return i + 1
             tot_volume += self.getDegreeList()[nodes_sorted_by_degree[i].id]
