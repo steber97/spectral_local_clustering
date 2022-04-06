@@ -96,9 +96,10 @@ class HyperGraphLocalClusteringDiscrete:
         k = np.random.rand() * tot_vol
         min_deg = np.min(graph_t.getDegreeList())
         max_deg = np.max(graph_t.getDegreeList())
-        d_hat = graph_t.compute_j_star(k)
+        j_star = graph_t.compute_j_star(k)
         I_t_k = graph_t.I_t(x, y, k)
         minval = min(np.sqrt(k / min_deg), np.sqrt((tot_vol - k) / min_deg))
+
         e = math.e ** (-(phi**2) / 2 * epoch)
         unif = k / tot_vol
         if not I_t_k <= minval * e + unif:

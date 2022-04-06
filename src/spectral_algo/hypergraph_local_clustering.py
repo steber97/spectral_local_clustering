@@ -61,7 +61,7 @@ if __name__ == "__main__":
         running_time_per_label[label] = []
 
     # Restore these!
-    alphas = np.array([0.05, 0.1, 0.2, 0.5])
+    alphas = np.array([0.05])
     epochs = 1.0 / alphas * 2.0
     params_list = [epochs, alphas, epochs]
     repetitions = 10
@@ -76,7 +76,9 @@ if __name__ == "__main__":
                 v = hypergraph.hypernodes[starting_vertices[rep]]
                 res.startVertices.append(v.id)
                 start = time.time()
-                cut = algo.hypergraph_local_clustering(hypergraph, v, param, mu)
+                cut = algo.hypergraph_local_clustering(hypergraph, v,
+                                                       50,
+                                                       mu)
                 end = time.time()
                 conductance = hypergraph.compute_conductance(cut)
                 res.conductance.append(conductance)
