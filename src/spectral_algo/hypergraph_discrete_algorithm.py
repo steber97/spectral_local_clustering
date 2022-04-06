@@ -98,12 +98,23 @@ class HyperGraphLocalClusteringDiscrete:
         max_deg = np.max(graph_t.getDegreeList())
         j_star = graph_t.compute_j_star(k)
         I_t_k = graph_t.I_t(x, y, k)
-        minval = min(np.sqrt(k / min_deg), np.sqrt((tot_vol - k) / min_deg))
+        # minval = min(np.sqrt(k / max_deg), np.sqrt((tot_vol - k) / max_deg))
+        minval = np.sqrt(j_star)
 
         e = math.e ** (-(phi**2) / 2 * epoch)
         unif = k / tot_vol
         if not I_t_k <= minval * e + unif:
             a = 10
+        if k + 2 * phi * k < tot_vol and k - 2 * phi * k >= 0:
+            j_star_k_min_phi_k = graph_t.compute_j_star(k - 2 * phi * k)
+            j_star_k_plu_phi_k = graph_t.compute_j_star(k + 2 * phi * k)
+            j_star_k = graph_t.compute_j_star(k)
+            sqrt1 = np.sqrt(j_star_k_min_phi_k)
+            sqrt2 = np.sqrt(j_star_k_plu_phi_k)
+            sqrt3 = np.sqrt(j_star_k - 2 * phi * j_star_k)
+            sqrt4 = np.sqrt(j_star_k + 2 * phi * j_star_k)
+            assert sqrt1 + sqrt2 <= \
+                  sqrt3 + sqrt4
         return ls_sweep, conductance, p_t_dt
     
     def hypergraph_local_clustering(self, hypergraph: HyperGraph, v: HyperNode, epochs: float, mu: float = 0.1, phi: float = 0.0) -> np.array:

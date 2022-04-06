@@ -64,8 +64,9 @@ if __name__ == "__main__":
     alphas = np.array([0.05])
     epochs = 1.0 / alphas * 2.0
     params_list = [epochs, alphas, epochs]
-    repetitions = 10
+    repetitions = 1
     results = {}
+    np.random.seed(42)
     starting_vertices = np.random.permutation(range(len(hypergraph.hypernodes)))
     for i, algo in tqdm(enumerate(solvers)):
         result = []
