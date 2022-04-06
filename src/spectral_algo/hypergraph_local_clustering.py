@@ -33,7 +33,8 @@ def local_clustering_multithread(v: HyperNode, solver, hypergraph: HyperGraph, m
 input_dataset_map = {
     "graphprod": "Hypergraph_clustering_based_on_PageRank/instance/graphprod_LCC.txt",
     "netscience": "Hypergraph_clustering_based_on_PageRank/instance/netscience_LCC.txt",
-    "arxiv": "Hypergraph_clustering_based_on_PageRank/instance/opsahl-collaboration_LCC.txt"
+    "arxiv": "Hypergraph_clustering_based_on_PageRank/instance/opsahl-collaboration_LCC.txt",
+    "n_400_d_10_r_8": "datasets/hypergraphs/d_regular_r_uniform/n_400_d_10_r_8.txt"
 }
 
 
@@ -46,19 +47,24 @@ if __name__ == "__main__":
     print("Input taken in {}s".format(time.time() - start_time))
     mu = 0.1
     solvers = [HyperGraphLocalClusteringDiscrete(hypergraph=hypergraph),
-               HyperGraphLocalClusteringByStar(hypergraph=hypergraph),
-               HyperGraphLocalClusteringRandom(hypergraph=hypergraph)]
-    labels = ['discrete', 'star', 'random']
+               # HyperGraphLocalClusteringByStar(hypergraph=hypergraph),
+               # HyperGraphLocalClusteringRandom(hypergraph=hypergraph)
+              ]
+    labels = ['discrete',
+              # 'star',
+              # 'random'
+             ]
     conductances_per_solver = {}
     running_time_per_label = {}
     for label in labels:
         conductances_per_solver[label] = []
         running_time_per_label[label] = []
 
+    # Restore these!
     alphas = np.array([0.05, 0.1, 0.2, 0.5])
     epochs = 1.0 / alphas * 2.0
     params_list = [epochs, alphas, epochs]
-    repetitions = 50
+    repetitions = 10
     results = {}
     starting_vertices = np.random.permutation(range(len(hypergraph.hypernodes)))
     for i, algo in tqdm(enumerate(solvers)):
@@ -76,6 +82,18 @@ if __name__ == "__main__":
                 res.conductance.append(conductance)
                 res.time.append(end - start)
             result.append(res)
+            for rep in range(repetitions):
+                v = hypergraph.hypernodes[starting_vertices[rep]]
+                start = time.time()
+                cut = algo.hypergraph_local_clustering(hypergraph,
+                                                       v,
+                                                       np.log(len(hypergraph.hyperedges)) / res.conductance[rep]**2, # Epochs
+                                                       mu,
+                                                       res.conductance[rep])
+                end = time.time()
+                conductance = hypergraph.compute_conductance(cut)
+            result.append(res)
         results[labels[i]] = result
 
+    # Check that the rule I_t(k) \leq min(sqrt(k/d), sqrt((m - k)/d)) e^(-phi^2 t) + k/2m
     plot_results(results, args.dataset)
