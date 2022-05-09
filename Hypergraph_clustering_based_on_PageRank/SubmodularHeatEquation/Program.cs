@@ -41,11 +41,13 @@ namespace SubmodularHeatEquation
             dataset_to_infile["netscience"] = "../../instance/netscience_LCC.txt";
             dataset_to_infile["arxiv"] = "../../instance/opsahl-collaboration_LCC.txt";
             dataset_to_infile["dblp_kdd"] = "../../instance/dblp_kdd_LCC.txt";
+            dataset_to_infile["fauci_email"] = "../../instance/fauci_email.txt";
             
             dataset_to_outfile["graphprod"] = "../../../output/output_conductances_graphprod.json";
             dataset_to_outfile["netscience"] = "../../../output/output_conductances_netscience.json";
             dataset_to_outfile["arxiv"] = "../../../output/output_conductances_opsahl-collaboration.json";
             dataset_to_outfile["dblp_kdd"] = "../../../output/output_conductances_dblp_kdd.json";
+            dataset_to_outfile["fauci_email"] = "../../../output/output_conductances_fauci_email.json";
 
             string dataset = args[0];
 
