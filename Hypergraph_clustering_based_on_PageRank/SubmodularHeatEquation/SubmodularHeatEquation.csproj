@@ -81,6 +81,7 @@
     <Compile Include="LocalClusteringDiscreteGraphIteration.cs" />
     <Compile Include="LocalClusteringHeatEquation.cs" />
     <Compile Include="LocalClusteringStar.cs" />
+    <Compile Include="MergeFindSet.cs" />
     <Compile Include="PageRank.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
