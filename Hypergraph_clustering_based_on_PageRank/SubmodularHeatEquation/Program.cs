@@ -42,15 +42,19 @@ namespace SubmodularHeatEquation
             dataset_to_infile["netscience"] = "../../instance/netscience_LCC.txt";
             dataset_to_infile["arxiv"] = "../../instance/opsahl-collaboration_LCC.txt";
             dataset_to_infile["dblp_kdd"] = "../../instance/dblp_kdd_LCC.txt";
-            dataset_to_infile["fauci_email_no_cc"] = "../../instance/fauci_email_no_cc_LCC.txt";
-            dataset_to_infile["fauci_email_cc"] = "../../instance/fauci_email_cc_LCC.txt";
+            dataset_to_infile["fauci_email_no_cc_fauci"] = "../../instance/fauci_email_no_cc_fauci_LCC.txt";
+            dataset_to_infile["fauci_email_cc_fauci"] = "../../instance/fauci_email_cc_fauci_LCC.txt";
+            dataset_to_infile["fauci_email_no_cc_no_fauci"] = "../../instance/fauci_email_no_cc_no_fauci_LCC.txt";
+            dataset_to_infile["fauci_email_cc_no_fauci"] = "../../instance/fauci_email_cc_no_fauci_LCC.txt";
             
             dataset_to_outfile["graphprod"] = "../../../output/output_conductances_graphprod.json";
             dataset_to_outfile["netscience"] = "../../../output/output_conductances_netscience.json";
             dataset_to_outfile["arxiv"] = "../../../output/output_conductances_opsahl-collaboration.json";
             dataset_to_outfile["dblp_kdd"] = "../../../output/output_conductances_dblp_kdd.json";
-            dataset_to_outfile["fauci_email_no_cc"] = "../../../output/output_conductances_fauci_email_no_cc.json";
-            dataset_to_outfile["fauci_email_cc"] = "../../../output/output_conductances_fauci_email_cc.json";
+            dataset_to_outfile["fauci_email_no_cc_fauci"] = "../../../output/output_conductances_fauci_email_no_cc_fauci.json";
+            dataset_to_outfile["fauci_email_cc_fauci"] = "../../../output/output_conductances_fauci_email_cc_fauci.json";
+            dataset_to_outfile["fauci_email_no_cc_no_fauci"] = "../../../output/output_conductances_fauci_email_no_cc_no_fauci.json";
+            dataset_to_outfile["fauci_email_cc_no_fauci"] = "../../../output/output_conductances_fauci_email_cc_no_fauci.json";
             
             string dataset = args[0];
 
@@ -91,7 +95,7 @@ namespace SubmodularHeatEquation
             for (int j = 0; j < algos.Length; j++)
             {
                 results[methods[j]] = new List<Result>();
-                for (int param = 0; param < paramslist[0].Count; param++)
+                for (int param = 0; param < paramslist[j].Count; param++)
                 {
                     Result res = new Result();
                     res.param = paramslist[j][param];
