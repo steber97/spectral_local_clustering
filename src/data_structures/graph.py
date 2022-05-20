@@ -75,6 +75,9 @@ class Graph:
             res += "{} -> {}, weight {}\n".format(e.start, e.end, e.weight)
         return res
 
+    def getTotVol(self):
+        return np.sum(self.getDegreeList())
+
     def getA(self):
         if self._A is None:
             self._A = csr_matrix((
@@ -291,7 +294,28 @@ class Graph:
         # Do a linear search for the moment:
         # Then it can be improved with a binary search.
         assert x[-1] >= k >= 0
-        for i in range(len(x)-1):
-            if k >= x[i] and k <= x[i+1]:
-                return y[i] + (k - x[i]) * (y[i+1] - y[i])
+        x_ = [0] + x
+        y_ = [0] + y
+        for i in range(len(x_)-1):
+            if k >= x_[i] and k <= x_[i+1]:
+                return y_[i] + ((k - x_[i]) / (x_[i+1] - x_[i])) * (y_[i+1] - y_[i])
         assert False  # This should never happen really.
+
+    def compute_j_star(self, k):
+        """
+        Return the number of vertices such that their volume is >= k, after having sorted them by degree.
+        Parameters
+        ----------
+        k
+
+        Returns
+        -------
+
+        """
+        nodes_sorted_by_degree = sorted(self.nodes, key=lambda x: self.getDegreeList()[x.id], reverse=False)
+        tot_volume = 0
+        for i in range(len(nodes_sorted_by_degree)):
+            if tot_volume <= k and tot_volume + self.getDegreeList()[nodes_sorted_by_degree[i].id] >= k:
+                return i + (k - tot_volume) / (self.getDegreeList()[nodes_sorted_by_degree[i].id])
+                # return i + 1
+            tot_volume += self.getDegreeList()[nodes_sorted_by_degree[i].id]

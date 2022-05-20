@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 
@@ -246,6 +247,45 @@ namespace SubmodularHeatEquation
                     break;
             }
             return best_cut;
+        }
+
+        /**
+         * Given an hypergraph, return the CCs as a list of int (ids of hypernodes).
+         * CCs are returned sorted by the size (largest CC first).
+         */
+        public List<List<int>> getCC()
+        {
+            List<MergeFindSet> hn_mfs = new List<MergeFindSet>(new MergeFindSet[n]);
+            for (int i = 0; i < n; i++)
+            {
+                hn_mfs[i] = new MergeFindSet(i);
+            }
+
+            foreach (List<int> edge in edges)
+            {
+                for (int j = 1; j < edge.Count; j++)
+                    hn_mfs[edge[j]].merge(hn_mfs[edge[j-1]]);
+            }
+
+            Dictionary<int, List<int>> map_cc = new Dictionary<int, List<int>>();
+            for (int i = 0; i < hn_mfs.Count; i++)
+            {
+                int root = hn_mfs[i].getRoot().value;
+                if (!map_cc.ContainsKey(root))
+                {
+                    map_cc[root] = new List<int>();
+                }
+                map_cc[root].Add(i);  
+            }
+
+            List<List<int>> cc_list = new List<List<int>>();
+            foreach (var a in map_cc)
+            {
+                cc_list.Add(a.Value);
+            }
+            // In order to reverse the sorting, simply negate the length of the list.
+            cc_list.Sort((a,b) => -a.Count.CompareTo(b.Count));
+            return cc_list;
         }
     }
 
