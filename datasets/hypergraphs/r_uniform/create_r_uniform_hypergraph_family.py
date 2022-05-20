@@ -1,6 +1,8 @@
 import argparse
 import numpy as np
 
+from src.data_structures.hypergraph import HyperGraph, HyperEdge, HyperNode
+
 args_main = argparse.ArgumentParser(
     "Create a family of r-uniform hypergraphs with equal conductance, but different r")
 
@@ -25,25 +27,42 @@ if __name__ == "__main__":
     conductance = args.conductance
 
     # Create the two bipartitions
-    A = [i for i in range(0, int(n/2))]
-    B = [i for i in range(int(n/2), n)]
+    A = [HyperNode(i) for i in range(0, int(n/2))]
+    B = [HyperNode(i) for i in range(int(n/2), n)]
 
-    
 
     for r in r_list: 
-        volume = 100 * r
+        volume = 10000
 
+        # First we add all edges crossing, until we have added a fraction of the volume which is
+        #  (1-phi)* volume (we hope that the weight will be distributed approximately 1/2 on both sides)
         hyperedges = []
-        for i in range(int((1-conductance)*volume/(r * 2))):
-            hyperedges.append(np.random.permutation(A)[:r])
-            hyperedges.append(np.random.permutation(B)[:r])
-        for i in range(int(conductance * volume/(r*2))):
+        hypernodes = [HyperNode(i) for i in range(n)]
+        edge_counter = 0
+        for i in range(int(conductance * volume / 2)):
             done = False
             while not done:
                 hyperedge = np.random.permutation(A+B)[:r]
-                if hyperedge[hyperedge in A] != 0 and hyperedge[hyperedge in A] != r:
-                    hyperedges.append(hyperedge)
+                ids = np.array([int(h.id) for h in hyperedge])
+                if ids[ids < int(n/2)].sum() > 0 and ids[ids >= int(n/2)].sum() > 0:
+                    hyperedges.append(HyperEdge(hyperedge, 1.0, edge_counter))
+                    edge_counter += 1
                     done = True
+        hypergraph1 = HyperGraph(hyperedges=hyperedges, hypernodes=hypernodes)
+        print(np.sum(hypergraph1.deg_by_node), 
+              np.sum(hypergraph1.deg_by_node[:int(0.5*n)]), 
+              np.sum(hypergraph1.deg_by_node[int(0.5*n):]))
+        volume_so_far = np.sum(hypergraph1.deg_by_node)
+        for i in range(int((volume-volume_so_far) /(r * 2))):
+            # Add hyperedges inside the two bipartitions
+            hyperedges.append(HyperEdge(np.random.permutation(A)[:r], 1.0, edge_counter))
+            hyperedges.append(HyperEdge(np.random.permutation(B)[:r], 1.0, edge_counter + 1))
+            edge_counter += 2
+        hypergraph2 = HyperGraph(hyperedges=hyperedges, hypernodes=A+B)
+        print(np.sum(hypergraph2.deg_by_node),
+              np.sum(hypergraph2.deg_by_node[:int(0.5*n)]), 
+              np.sum(hypergraph2.deg_by_node[int(0.5*n):]))
+        print(hypergraph2.compute_conductance([i < n/2 for i in range(n)]))
 
 
 
