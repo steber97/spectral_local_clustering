@@ -81,7 +81,7 @@ class HyperGraphLocalClusteringDiscrete:
         # print("Time for graph initialization: {}".format(time.time() - time_start))
         return graph, map_hyperedge_edge
 
-    def perform_one_iteration(self, hypergraph: HyperGraph, pt: np.array, mu: float, epoch: float, phi: float = 0.0):
+    def perform_one_iteration(self, hypergraph: HyperGraph, pt: np.array, mu: float):
         graph_t, map_hyperedge_edge_t = self.build_graph(hypergraph=hypergraph, p=pt)
         ls_sweep = hypergraph.compute_lovasz_simonovits_sweep(pt, mu)
         conductance = hypergraph.compute_conductance(ls_sweep)
@@ -89,32 +89,6 @@ class HyperGraphLocalClusteringDiscrete:
         Mt = ((1 - self.dt) * (identity(len(graph_t.nodes))) + self.dt * graph_t.getA() * graph_t.getDInv())
         p_t_dt = Mt.dot(pt)
 
-        # Assert that it holds that I_t(k) \leq min(sqrt(k), sqrt(k/m)) e^(-t \phi^2) + k/m
-        x, y, _ = graph_t.compute_lovasz_simonovits_curve(pt)
-        angular_coeff = [((y[i] - y[i-1]) / (x[i] - x[i-1])) for i in range(1, len(x))]
-        tot_vol = graph_t.getTotVol()
-        k = np.random.rand() * tot_vol
-        min_deg = np.min(graph_t.getDegreeList())
-        max_deg = np.max(graph_t.getDegreeList())
-        j_star = graph_t.compute_j_star(k)
-        I_t_k = graph_t.I_t(x, y, k)
-        # minval = min(np.sqrt(k / max_deg), np.sqrt((tot_vol - k) / max_deg))
-        minval = np.sqrt(j_star)
-
-        e = math.e ** (-(phi**2) / 2 * epoch)
-        unif = k / tot_vol
-        if not I_t_k <= minval * e + unif:
-            a = 10
-        if k + 2 * phi * k < tot_vol and k - 2 * phi * k >= 0:
-            j_star_k_min_phi_k = graph_t.compute_j_star(k - 2 * phi * k)
-            j_star_k_plu_phi_k = graph_t.compute_j_star(k + 2 * phi * k)
-            j_star_k = graph_t.compute_j_star(k)
-            sqrt1 = np.sqrt(j_star_k_min_phi_k)
-            sqrt2 = np.sqrt(j_star_k_plu_phi_k)
-            sqrt3 = np.sqrt(j_star_k - 2 * phi * j_star_k)
-            sqrt4 = np.sqrt(j_star_k + 2 * phi * j_star_k)
-            assert sqrt1 + sqrt2 <= \
-                  sqrt3 + sqrt4
         return ls_sweep, conductance, p_t_dt
     
     def hypergraph_local_clustering(self, hypergraph: HyperGraph, v: HyperNode, epochs: float, mu: float = 0.1, phi: float = 0.0) -> np.array:
@@ -125,7 +99,7 @@ class HyperGraphLocalClusteringDiscrete:
         best_conductance = 1.1
         conductances = []
         for epoch in range(int(epochs)):
-            cut, conductance, p_t_dt = self.perform_one_iteration(hypergraph, pt, mu, epoch, phi)
+            cut, conductance, p_t_dt = self.perform_one_iteration(hypergraph, pt, mu)
             conductances.append(conductance)
             if best_cut is None or conductance < best_conductance:
                 best_cut = cut
