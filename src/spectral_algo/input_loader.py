@@ -22,7 +22,8 @@ def input_loader_graph(dataset_name: str):
 input_dataset_map = {
     "graphprod": "Hypergraph_clustering_based_on_PageRank/instance/graphprod_LCC.txt",
     "netscience": "Hypergraph_clustering_based_on_PageRank/instance/netscience_LCC.txt",
-    "arxiv": "Hypergraph_clustering_based_on_PageRank/instance/opsahl-collaboration_LCC.txt"
+    "arxiv": "Hypergraph_clustering_based_on_PageRank/instance/opsahl-collaboration_LCC.txt",
+
 }
 
 
@@ -47,3 +48,8 @@ def input_loader_hypergraph(dataset_name: str):
     from src.data_structures.hypergraph import HyperGraph
     if dataset_name == "graphprod" or dataset_name == "netscience" or dataset_name == "arxiv":
         return HyperGraph.read_hypergraph(input_dataset_map[dataset_name])
+
+    if "hypergraph_conductance_0_01_vol_10000_n_100" in dataset_name:
+        return HyperGraph.read_hypergraph(dataset_name)
+    # Input file not found.
+    raise FileNotFoundError
