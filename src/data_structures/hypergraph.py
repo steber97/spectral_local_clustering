@@ -68,9 +68,12 @@ class HyperGraph:
             for hn in he.hypernodes:
                 self.adj_list[hn.id].append(he)
 
-        self.deg_by_node = [0 for i in range(len(self.hypernodes))]
+        self.deg_by_node = np.array([0 for i in range(len(self.hypernodes))])
         for hn in self.hypernodes:
             self.deg_by_node[hn.id] = np.sum([he.weight for he in self.adj_list[hn.id]])
+
+    def get_volume(self):
+        return np.sum(self.deg_by_node)
 
     def get_CCs(self) -> List[List[HyperNode]]:
         hn_mfs = {}

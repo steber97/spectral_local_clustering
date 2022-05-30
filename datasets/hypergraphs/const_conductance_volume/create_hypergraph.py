@@ -43,7 +43,7 @@ if __name__ == "__main__":
         done = False
         while not done:
             # The maximum size of the hyperedge is 1/conductance.
-            hyperedge = np.random.permutation(A+B)[:np.random.randint(0, int(1/conductance)+1)]
+            hyperedge = np.random.permutation(A+B)[:np.random.randint(2, int(1/conductance)+1)]
             ids = np.array([int(h.id) for h in hyperedge])
             if ids[ids < int(n/2)].sum() > 0 and ids[ids >= int(n/2)].sum() > 0:
                 hyperedges.append(HyperEdge(hyperedge, 1.0, edge_counter))
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         vol_added = 0
         while vol_bip + vol_added < volume / 2.0:
             # Add hyperedges inside the two bipartitions
-            r = np.random.randint(0, int(1/conductance))
+            r = np.random.randint(2, int(1/conductance))
             hyperedges.append(HyperEdge(np.random.permutation(bip)[:r], 1.0, edge_counter))
             edge_counter += 1
             vol_added += r
@@ -99,6 +99,7 @@ if __name__ == "__main__":
     with open(filename, "w") as f:
         for he in hypergraph2.hyperedges:
             row = ""
+            assert len(he.hypernodes) > 1
             for hn in he.hypernodes:
                 hn: HyperNode
                 row += "{} ".format(hn.id)

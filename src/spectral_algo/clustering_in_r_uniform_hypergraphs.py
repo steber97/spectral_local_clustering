@@ -19,21 +19,23 @@ from multiprocessing import Pool
 
 args = argparse.ArgumentParser("Perform local graph clustering algorithm")
 args.add_argument("--dataset_folder", type=str, choices=[
-    "hypergraph_conductance_0_01_vol_10000_n_100"
+    "hypergraph_conductance_0_01_vol_10000_n_100", "hypergraph_conductance_0_1_vol_10000_n_100",
+    "hypergraph_conductance_0_01_vol_1000_n_100"
 ])
 args = args.parse_args()
 
 input_dataset_map = {
-    "hypergraph_conductance_0_01_vol_10000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_01_vol_10000_n_100"
+    "hypergraph_conductance_0_01_vol_10000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_01_vol_10000_n_100",
+    "hypergraph_conductance_0_1_vol_10000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_1_vol_10000_n_100",
+    "hypergraph_conductance_0_01_vol_1000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_01_vol_1000_n_100"
 }
 
-REPETITIONS = 10
+REPETITIONS = 1
 MU = 0.5  # take cuts as large as 1/2 the volume (no local clustering)
 
 if __name__=="__main__":
     iterations = {}
     np.random.seed(42)
-    print(os.listdir(input_dataset_map[args.dataset_folder]))
     for file in os.listdir(input_dataset_map[args.dataset_folder]):
         iterations[file] = []
         if ".txt" in file:
@@ -54,13 +56,13 @@ if __name__=="__main__":
                 best_conductance = 1.0
                 # Repeat until we have converged
                 while True:
-                    cut, conductance, p_t_dt = algo.perform_one_iteration(hypergraph, p_t, MU)
+                    cut, conductance, p_t_dt, graph_t = algo.perform_one_iteration(hypergraph, p_t, MU)
                     conductances.append(conductance)
                     if best_cut is None or conductance < best_conductance:
                         best_cut = cut
                         best_conductance = conductance
                     iteration += 1
-                    if np.max(np.abs(stationary_distribution - p_t_dt)) < 1 / n:
+                    if np.max(np.abs(stationary_distribution - p_t_dt)) < 1 / n**2:
                         break
                     p_t = p_t_dt
                     assert np.abs(np.sum(p_t) - 1.0) < 0.00001
@@ -69,4 +71,5 @@ if __name__=="__main__":
     for file in iterations:
         iterations[file] = np.array(iterations[file])
         print("{}: {} +- {}".format(file, iterations[file].mean(), iterations[file].std()))
+        print("Max iterations allowed t = O(log(vol)/phi^2): {}".format(np.log2(hypergraph.get_volume()) / conductance**2))
 

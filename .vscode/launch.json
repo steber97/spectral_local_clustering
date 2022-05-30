@@ -2,6 +2,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: mixing const vol or conductance",
+            "type": "python",
+            "request": "launch",
+            "program": "src/spectral_algo/mixing_in_const_vol_or_conductance_hypergraphs.py",
+            "cwd": "/home/stefano/Documents/git/EPFL/master_project/spectral_local_clustering",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--dataset", "cond_0_05"
+            ],
+            "python.envFile": "${workspaceFolder}/.env"
+        },
+        {
             "name": "Python: Run local clustering algorithm",
             "type": "python",
             "request": "launch",

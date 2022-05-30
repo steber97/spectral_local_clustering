@@ -89,7 +89,7 @@ class HyperGraphLocalClusteringDiscrete:
         Mt = ((1 - self.dt) * (identity(len(graph_t.nodes))) + self.dt * graph_t.getA() * graph_t.getDInv())
         p_t_dt = Mt.dot(pt)
 
-        return ls_sweep, conductance, p_t_dt
+        return ls_sweep, conductance, p_t_dt, graph_t
     
     def hypergraph_local_clustering(self, hypergraph: HyperGraph, v: HyperNode, epochs: float, mu: float = 0.1, phi: float = 0.0) -> np.array:
         p_0 = np.zeros(len(hypergraph.hypernodes))
@@ -99,7 +99,7 @@ class HyperGraphLocalClusteringDiscrete:
         best_conductance = 1.1
         conductances = []
         for epoch in range(int(epochs)):
-            cut, conductance, p_t_dt = self.perform_one_iteration(hypergraph, pt, mu)
+            cut, conductance, p_t_dt, _ = self.perform_one_iteration(hypergraph, pt, mu)
             conductances.append(conductance)
             if best_cut is None or conductance < best_conductance:
                 best_cut = cut

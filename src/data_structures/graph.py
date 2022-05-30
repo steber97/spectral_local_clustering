@@ -254,6 +254,11 @@ class Graph:
 
         Since the Lovasz-Simonovits curve is pointwise linear, it is enough to list the x,y coordinates of 
         the non-derivabile points. It is assured that the first point is (0, 0) and the last is (sigma, 1)
+
+        Returns:
+            - x
+            - y
+            - vertices sorted by prob/deg
         """
         x = []
         y = []
