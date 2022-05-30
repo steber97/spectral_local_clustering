@@ -10,7 +10,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--dataset", "hypergraph_conductance_0_01_vol_10000_n_100"
+                "--dataset", "hypergraph_conductance_0_01_vol_1000_n_100"
             ],
             "python.envFile": "${workspaceFolder}/.env"
         },
@@ -22,11 +22,25 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--conductance", "0.01",
-                "--r", "3", "10", "15", "50", "100",
+                "--conductance", "0.1",
+                "--r", "3", "10", "15",
+                "--n", "1000",
+                "--volume", "1000000",
+                "--out_folder", "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_01_vol_1000000_n_1000"
+            ]
+        },
+        {
+            "name": "Python: Create hypergraph",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/stefano/Documents/git/EPFL/master_project/spectral_local_clustering/datasets/hypergraphs/const_conductance_volume/create_hypergraph.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--conductance", "0.05",
                 "--n", "100",
-                "--volume", "10000",
-                "--out_folder", "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_01_vol_10000_n_100"
+                "--volume", "1000",
+                "--out_folder", "datasets/hypergraphs/const_conductance_volume/"
             ]
         },
     ]
