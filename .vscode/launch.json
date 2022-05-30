@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Run local clustering algorithm",
+            "type": "python",
+            "request": "launch",
+            "program": "src/spectral_algo/clustering_in_r_uniform_hypergraphs.py",
+            "cwd": "/home/stefano/Documents/git/EPFL/master_project/spectral_local_clustering",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--dataset", "hypergraph_conductance_0_01_vol_10000_n_100"
+            ],
+            "python.envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "Python: Create R Uniform hypergraph family",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/stefano/Documents/git/EPFL/master_project/spectral_local_clustering/datasets/hypergraphs/r_uniform/create_r_uniform_hypergraph_family.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--conductance", "0.01",
+                "--r", "3", "10", "15", "50", "100",
+                "--n", "100",
+                "--volume", "10000",
+                "--out_folder", "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_01_vol_10000_n_100"
+            ]
+        },
+    ]
+}
