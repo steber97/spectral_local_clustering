@@ -27,7 +27,7 @@ python datasets/hypergraphs/const_conductance_volume/create_hypergraph.py \
 # Create hypergraphs with constant conductance
 python datasets/hypergraphs/const_conductance_volume/create_hypergraph.py \
  --conductance 0.05 \
- --n 300 \
+ --n 180 \
  --volume 10000 \
  --out_folder datasets/hypergraphs/const_conductance_volume/const_conductance/cond_0_05
 
@@ -39,12 +39,12 @@ python datasets/hypergraphs/const_conductance_volume/create_hypergraph.py \
 
 python datasets/hypergraphs/const_conductance_volume/create_hypergraph.py \
  --conductance 0.05 \
- --n 200 \
+ --n 120 \
  --volume 5000 \
  --out_folder datasets/hypergraphs/const_conductance_volume/const_conductance/cond_0_05
 
 python datasets/hypergraphs/const_conductance_volume/create_hypergraph.py \
  --conductance 0.05 \
- --n 300 \
+ --n 200 \
  --volume 15000 \
  --out_folder datasets/hypergraphs/const_conductance_volume/const_conductance/cond_0_05
