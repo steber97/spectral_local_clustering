@@ -78,6 +78,8 @@ if __name__=="__main__":
             std = iterations[file].std()
             data.append((vol, iter, std))
             xlabel = "volume"
+            title = "Constant conductance, varying volume"
+            img_name = "const_cond.png"
     elif "vol" in args.dataset:
         for file in iterations:
             vol = int(file.split("vol_")[1].split("_")[0])
@@ -86,6 +88,8 @@ if __name__=="__main__":
             std = iterations[file].std()
             data.append((conductance, iter, std))
             xlabel = "conductance"
+            title = "Constant volume, varying conductance"
+            img_name = "const_vol.png"
     
     data = sorted(data, key=lambda x: x[0])
     x = [x[0] for x in data]
@@ -94,4 +98,6 @@ if __name__=="__main__":
     plt.errorbar(x, y, yerr=error, fmt='-o')
     plt.xlabel(xlabel)
     plt.ylabel("iterations")
-    plt.show()
+    plt.title(title)
+    # plt.show()
+    plt.savefig("{}/{}".format(input_dataset_map[args.dataset], img_name))
