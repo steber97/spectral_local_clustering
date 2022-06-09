@@ -64,6 +64,7 @@ if __name__ == "__main__":
             np.sum(hypergraph2.deg_by_node[:int(0.5*n)]), 
             np.sum(hypergraph2.deg_by_node[int(0.5*n):])))
         print("Conductance: {}".format(hypergraph2.compute_conductance([i < n/2 for i in range(n)])))
+        assert abs(conductance - hypergraph2.compute_conductance([i < n/2 for i in range(n)])) < 0.001
 
         # Take some random cuts and check that indeed the conductance for them is high!
         for i in range(1, 100):
