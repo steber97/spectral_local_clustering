@@ -2,6 +2,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: leaking assert",
+            "type": "python",
+            "request": "launch",
+            "program": "src/spectral_algo/hypergraph_leaking.py",
+            "cwd": "/home/stefano/Documents/git/EPFL/master_project/spectral_local_clustering",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--dataset", "hypergraph_conductance_0_01_vol_10000_n_100"
+            ],
+            "python.envFile": "${workspaceFolder}/.env"
+        },
+        {
             "name": "Python: mixing const vol or conductance",
             "type": "python",
             "request": "launch",
