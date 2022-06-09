@@ -36,14 +36,18 @@ MU = 0.5  # take cuts as large as 1/2 the volume (no local clustering)
 if __name__=="__main__":
     iterations = {}
     np.random.seed(42)
+    deltas_by_file = {}
     for file in os.listdir(input_dataset_map[args.dataset_folder]):
         iterations[file] = []
         if ".txt" in file:
+            print("Processing file {}".format(file))
             hypergraph = input_loader_hypergraph("{}/{}".format(input_dataset_map[args.dataset_folder], file))
             stationary_distribution = np.array([hypergraph.deg_by_node[n.id] / np.sum(hypergraph.deg_by_node) for n in hypergraph.hypernodes])
             starting_vertices = np.random.permutation(range(len(hypergraph.hypernodes)))
             n = len(hypergraph.hypernodes)
-            for rep in range(REPETITIONS):
+            best_conductances = []
+            
+            for rep in tqdm(range(REPETITIONS)):
                 algo = HyperGraphLocalClusteringDiscrete(hypergraph=hypergraph)
                 # Starting vector centered in one vertex.
                 p_t = np.zeros(n)
@@ -55,6 +59,7 @@ if __name__=="__main__":
                 best_cut = None
                 best_conductance = 1.0
                 # Repeat until we have converged
+                max_delta = []
                 while True:
                     cut, conductance, p_t_dt, graph_t = algo.perform_one_iteration(hypergraph, p_t, MU)
                     conductances.append(conductance)
@@ -62,11 +67,21 @@ if __name__=="__main__":
                         best_cut = cut
                         best_conductance = conductance
                     iteration += 1
-                    if np.max(np.abs(stationary_distribution - p_t_dt)) < 1 / n**2:
+                    delta = np.max(np.abs(stationary_distribution - p_t_dt))
+                    max_delta.append(delta)
+                    if delta < (1 / (n**(1))):
                         break
                     p_t = p_t_dt
                     assert np.abs(np.sum(p_t) - 1.0) < 0.00001
                 iterations[file].append(iteration)
+                best_conductances.append(best_conductance)
+                deltas_by_file[file] = max_delta
+    for file in deltas_by_file:
+        plt.plot([x for x in range(len(deltas_by_file[file]))], 
+                    (deltas_by_file[file]), 
+                    label=file.split("r_")[1].split("_")[0])
+    plt.legend()
+    plt.show()
             
     for file in iterations:
         iterations[file] = np.array(iterations[file])
