@@ -15,7 +15,7 @@
             "python.envFile": "${workspaceFolder}/.env"
         },
         {
-            "name": "Python: Run local clustering algorithm",
+            "name": "Python: r-uniform mixing",
             "type": "python",
             "request": "launch",
             "program": "src/spectral_algo/clustering_in_r_uniform_hypergraphs.py",
@@ -23,7 +23,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--dataset", "hypergraph_conductance_0_01_vol_1000_n_100"
+                "--dataset", "hypergraph_conductance_0_01_vol_10000_n_100"
             ],
             "python.envFile": "${workspaceFolder}/.env"
         },

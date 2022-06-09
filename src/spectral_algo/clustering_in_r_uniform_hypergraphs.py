@@ -38,8 +38,8 @@ if __name__=="__main__":
     np.random.seed(42)
     deltas_by_file = {}
     for file in os.listdir(input_dataset_map[args.dataset_folder]):
-        iterations[file] = []
         if ".txt" in file:
+            iterations[file] = []
             print("Processing file {}".format(file))
             hypergraph = input_loader_hypergraph("{}/{}".format(input_dataset_map[args.dataset_folder], file))
             stationary_distribution = np.array([hypergraph.deg_by_node[n.id] / np.sum(hypergraph.deg_by_node) for n in hypergraph.hypernodes])
@@ -69,7 +69,7 @@ if __name__=="__main__":
                     iteration += 1
                     delta = np.max(np.abs(stationary_distribution - p_t_dt))
                     max_delta.append(delta)
-                    if delta < (1 / (n**(1))):
+                    if delta < (1 / (n**(2))):
                         break
                     p_t = p_t_dt
                     assert np.abs(np.sum(p_t) - 1.0) < 0.00001
@@ -78,7 +78,7 @@ if __name__=="__main__":
                 deltas_by_file[file] = max_delta
     for file in deltas_by_file:
         plt.plot([x for x in range(len(deltas_by_file[file]))], 
-                    (deltas_by_file[file]), 
+                    (np.log(deltas_by_file[file])), 
                     label=file.split("r_")[1].split("_")[0])
     plt.legend()
     plt.show()
