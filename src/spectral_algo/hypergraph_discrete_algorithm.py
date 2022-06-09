@@ -86,8 +86,8 @@ class HyperGraphLocalClusteringDiscrete:
         ls_sweep = hypergraph.compute_lovasz_simonovits_sweep(pt, mu)
         conductance = hypergraph.compute_conductance(ls_sweep)
         # Evolve pt
-        Mt = ((1 - self.dt) * (identity(len(graph_t.nodes))) + self.dt * graph_t.getA() * graph_t.getDInv())
-        p_t_dt = Mt.dot(pt)
+        self.M_t = ((1 - self.dt) * (identity(len(graph_t.nodes))) + self.dt * graph_t.getA() * graph_t.getDInv())
+        p_t_dt = self.M_t.dot(pt)
 
         return ls_sweep, conductance, p_t_dt, graph_t
     
