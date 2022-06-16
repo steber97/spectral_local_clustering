@@ -16,22 +16,28 @@ import argparse
 import os
 from ast import arg
 from multiprocessing import Pool
+import unicodedata
 
 args = argparse.ArgumentParser("Perform local graph clustering algorithm")
 args.add_argument("--dataset_folder", type=str, choices=[
     "hypergraph_conductance_0_01_vol_10000_n_100", "hypergraph_conductance_0_1_vol_10000_n_100",
-    "hypergraph_conductance_0_01_vol_1000_n_100"
+    "hypergraph_conductance_0_01_vol_1000_n_100", "hypergraph_conductance_0_05_vol_10000_n_100"
 ])
 args = args.parse_args()
 
 input_dataset_map = {
     "hypergraph_conductance_0_01_vol_10000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_01_vol_10000_n_100",
     "hypergraph_conductance_0_1_vol_10000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_1_vol_10000_n_100",
-    "hypergraph_conductance_0_01_vol_1000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_01_vol_1000_n_100"
+    "hypergraph_conductance_0_01_vol_1000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_01_vol_1000_n_100",
+    "hypergraph_conductance_0_05_vol_10000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_05_vol_10000_n_100"
 }
 
 REPETITIONS = 1
 MU = 0.5  # take cuts as large as 1/2 the volume (no local clustering)
+
+def get_r(file: str) -> int:
+    return int(file.split("r_")[1].split("_")[0])
+
 
 if __name__=="__main__":
     iterations = {}
@@ -76,15 +82,13 @@ if __name__=="__main__":
                 iterations[file].append(iteration)
                 best_conductances.append(best_conductance)
                 deltas_by_file[file] = max_delta
-    for file in deltas_by_file:
+    for file in sorted(deltas_by_file.keys(), key=lambda x: get_r(x)):
         plt.plot([x for x in range(len(deltas_by_file[file]))], 
-                    (np.log(deltas_by_file[file])), 
-                    label=file.split("r_")[1].split("_")[0])
+                    (deltas_by_file[file]), 
+                    label="r={}".format(get_r(file)))
+    plt.title("Mixing time in r-uniform hypergraphs")
+    plt.ylabel("l-infinity norm (p_t - {})".format(unicodedata.lookup("GREEK SMALL LETTER PI")))
+    plt.yscale("log")
+    plt.xlabel("Time")
     plt.legend()
-    plt.show()
-            
-    for file in iterations:
-        iterations[file] = np.array(iterations[file])
-        print("{}: {} +- {}".format(file, iterations[file].mean(), iterations[file].std()))
-        print("Max iterations allowed t = O(log(vol)/phi^2): {}".format(np.log2(hypergraph.get_volume()) / conductance**2))
-
+    plt.savefig("{}/mixing_r_uniform_hypergraph.png".format(input_dataset_map[args.dataset_folder]), dpi=300)
