@@ -1,0 +1,149 @@
+\documentclass[a4paper]{article}
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[export]{adjustbox}
+%\usepackage[square, numbers]{natbib}
+% package for including graphics with figure-environment
+\usepackage{graphicx}
+
+%Images path
+\graphicspath{{img/}}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+% \usepackage{setspace}
+% \usepackage[rgb]{xcolor}
+% \usepackage{verbatim}
+% \usepackage{subcaption}
+% \usepackage{amsgen,amsmath,amstext,amsbsy,amsopn,tikz,amssymb}
+% \usepackage{fancyhdr}
+% \usepackage{rotating}
+% \usepackage{algorithm} 
+% \usepackage[noend]{algpseudocode}
+% \usepackage{amsmath}
+\usepackage[ruled, vlined]{algorithm2e}
+
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{bbm}
+\usepackage{amsgen,amsmath,amstext,amsbsy,amsopn,tikz,amssymb}
+% \usepackage[ruled,vlined]{algorithm2e}
+\usepackage{multirow}
+\usepackage{mathtools}
+% \usepackage{algorithm}
+\usepackage{algpseudocode}
+% \usepackage{algorithm2e}
+\newcommand{\normtwosq}[1]{\left\lVert#1\right\rVert_2^2}
+\newcommand{\notimplies}{\;\not\!\!\!\implies}
+
+
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}[lemma]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{claim}[lemma]{Claim}
+\newtheorem{fact}[lemma]{Fact}
+\newtheorem{conj}[lemma]{Conjecture}
+\newtheorem{definition}[lemma]{Definition}
+\newtheorem{Definition}{Definition}
+\newtheorem{problem}{Problem}
+%\theoremstyle{definition}
+\newtheorem{remark}[lemma]{Remark}
+\newtheorem{observation}[lemma]{Observation}
+\newtheorem{invariant}[lemma]{Invariant}
+\newtheorem{assumption}{Assumption}
+
+% \usepackage{fancyhdr}
+%\usepackage[colorlinks=true, urlcolor=blue,  linkcolor=blue, citecolor=blue]{hyperref}
+%\usepackage[colorinlistoftodos]{todonotes}
+%\usepackage{rotating}
+% colors for hyperlinks
+% colored borders (false) colored text (true)
+\hypersetup{colorlinks=true,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
+
+
+% package for bibliography
+%\usepackage[authoryear,round]{natbib}
+% package for header
+\usepackage[automark,headsepline]{scrlayer-scrpage}
+
+\usepackage{subfiles} % Best loaded last in the preambl
+
+\pagestyle{scrheadings}
+\ihead[]{Stefano Huber}
+\ohead[]{\today}
+\cfoot[]{\pagemark} 
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\let\vec\mathbf
+
+\begin{document}
+
+	\title{
+    	\begin{figure}[!ht]
+    	    \centering
+    		\includegraphics[width=0.26\textwidth]{epfl_logo.png}
+    	\end{figure}
+    	\vspace{1cm}
+    	\Huge Master Thesis \\
+	}
+	
+	\vspace{1cm}
+	
+	% Insert here your name and correct mail address
+	\author{\Large \href{mailto:stefano.huber@epfl.ch}{Stefano Huber}
+	\vspace{1cm}}
+	
+	% name of the course and module
+	\date{
+	\large Local Clustering in irregular Hypergraphs. \\
+	\vspace{0.8cm}
+	\large Professor: Michael Kapralov \\
+	\large Supervisors: Kshiteej Sheth and Jakab Tardos \\
+	\vspace{1cm}
+	\today
+	}
+
+	\maketitle
+	\setlength{\parindent}{0pt}
+
+\vspace{2cm}
+\begin{abstract}
+    Graph clustering is a widely studied graph problem. One of the main techniques used in order to develop such algorithms is the study of random walks: in particular, how fast random walks reach the stationary distribution in a cluster (mixing), and how much probability clusters lose during the random walk (leaking). Although this problem for graphs has been widely studied and understood, the generalization to hypergraphs (which are capable of representing higher than binary relations) remains to this point still open. In particular, it is hard to define a discrete Laplacian operator for hypergraphs, which makes discrete random walks inherently hard to study. Recently, a discrete diffusion process for regular hypergraphs with proper mixing guarantees has been described by Sheth et al. In this document, we are going to extend such result to irregular hypergraphs, and discuss whether the obtained guarantees are powerful enough in order to develop a conventional clustering algorithm. To conclude, we are briefly describing why the leaking result is in contrast hard to generalize to hypergraphs, and propose a possible direction for future works on the argument.
+\end{abstract}
+	\newpage
+	\tableofcontents
+	\newpage
+	
+\section{Introduction} % (fold)
+\label{sec:introduction}
+\subfile{sections/introduction}
+
+\section{Background}
+\label{sec:background}
+\subfile{sections/background}
+
+\section{Mixing in non d-regular hypergraphs}
+\label{sec:extensions_non_d_reg_hypergraphs}
+\subfile{sections/extension_to_non_d_regular_hypergraphs}
+
+\section{Discussion of mixing result}
+\label{sec:discussion}
+\subfile{sections/discussion}
+
+\section{Experiments}
+\label{sec:experiments}
+\subfile{sections/experiments}
+
+\section{Conclusion and further work}
+\label{sec:conclusion}
+\subfile{sections/conclusions}
+
+\appendix
+
+\newpage 
+\bibliographystyle{abbrv}
+\bibliography{references}
+\end{document}

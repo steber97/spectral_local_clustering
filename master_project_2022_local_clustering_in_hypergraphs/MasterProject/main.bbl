@@ -1,0 +1,45 @@
+\begin{thebibliography}{1}
+
+\bibitem{AndersenPPRClustering}
+R.~Andersen, F.~Chung, and K.~Lang.
+\newblock Local graph partitioning using pagerank vectors.
+\newblock In {\em 2006 47th Annual IEEE Symposium on Foundations of Computer
+  Science (FOCS'06)}, pages 475--486, 2006.
+
+\bibitem{continuous_laplacian_hypergraph}
+T.~H. Chan, A.~Louis, Z.~G. Tang, and C.~Zhang.
+\newblock Spectral properties of hypergraph laplacian and approximation
+  algorithms.
+\newblock {\em CoRR}, abs/1605.01483, 2016.
+
+\bibitem{Kapralov2020Nov}
+M.~Kapralov, R.~Krauthgamer, J.~Tardos, and Y.~Yoshida.
+\newblock {Towards Tight Bounds for Spectral Sparsification of Hypergraphs}.
+\newblock {\em arXiv}, Nov. 2020.
+
+\bibitem{Li_Milenkovic_Laplacian_hypergraphs}
+P.~Li and O.~Milenkovic.
+\newblock Submodular hypergraphs: p-laplacians, cheeger inequalities and
+  spectral clustering.
+\newblock {\em CoRR}, abs/1803.03833, 2018.
+
+\bibitem{Lovsz1993RandomWI}
+L.~M. Lov{\'a}sz and M.~Simonovits.
+\newblock Random walks in a convex body and an improved volume algorithm.
+\newblock {\em Random Struct. Algorithms}, 4:359--412, 1993.
+
+\bibitem{LScurve_decreasing}
+D.~Spielman.
+\newblock The lovasz - simonovits approach to random walks, 2018.
+
+\bibitem{SpielmanClustering}
+D.~A. Spielman and S.~Teng.
+\newblock A local clustering algorithm for massive graphs and its application
+  to nearly-linear time graph partitioning.
+\newblock {\em CoRR}, abs/0809.3232, 2008.
+
+\bibitem{Takai_2020}
+Y.~Takai, A.~Miyauchi, M.~Ikeda, and Y.~Yoshida.
+\newblock {ACM}, aug 2020.
+
+\end{thebibliography}

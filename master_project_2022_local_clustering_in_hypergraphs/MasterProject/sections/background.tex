@@ -1,0 +1,202 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{{\subfix{../img/}}}
+\begin{document}
+
+\subsection{Standard Graphs}
+\label{subsec:definition_graphs}
+    
+    A graph $G = (V, E, w)$ is a collection of vertices $V$, of edges $E\subseteq V\times V$, and a weight function $w(e): E\to \mathbb{R}$ assigning a weight to every edge. We usually call $n := |V|$ and $m := |E|$. If the graph is unweighted, then we can assume that $w(e) = 1$, $\forall e\in E$. Edges are usually directed (namely, $(u,v) \neq (v,u)$). We define the degree of a node as $d(v) := \sum_{(v, u)\in E} w(v,u)$, the degree vector $\vec{d}$ as the vector of vertex degrees and the diagonal degree matrix $D:=\text{diag}(\vec{d})$. We define the volume of a subset of nodes $S\subseteq V$ as $\text{vol}(S) := \sum_{u\in S} d(u)$. Conveniently, the volume of the graph is simply the volume of its entire vertex set: $\text{vol}(G) := \text{vol}(V)$. It is also convenient to define the adjacency matrix as $A:=(w(u,v))_{(u,v)\in E}$. We always assume that the graphs analyzed are connected.
+    
+    A lazy random walk is defined as the random walk that with probability $\frac{1}{2}$ stays still, and with probability $\frac{1}{2}$ moves from any vertex $u$ along any of the adjacent edges w.p. $\frac{w(u,v)}{d(u)}$. It is easy to check that we can express the evolution of the random walk as
+    
+    \begin{equation}
+        \vec{p}_{t+1} = \frac{1}{2}(I + AD^{-1})\vec{p}_t
+    \end{equation}
+    
+    We call $M = \frac{1}{2}(I+AD^{-1})$ the transition probability matrix.
+    
+    It is a known result for Markov Chains that such random walks converge to the stationary distribution $\vec{\pi} = \left(\frac{d(u)}{\text{vol}(G)}\right)_{u\in V}$. When we are talking about mixing, we simply want to describe how fast the random walk converges to the stationary distribution: if we allow the notation $p(S) := \sum_{u\in S} p(u)$ for some $S\subseteq V$, then a good mixing result would be of the form $\forall S\subseteq V$, $|p(S) - \pi(S)| \leq f(t)$, namely the difference between the probability centered in any subset of nodes and the stationary distribution on the same subset of nodes must be some function $f$ depending on the time (we are going to show that $f(t)$ is exponentially decreasing with respect to the time $t$).
+    
+    To conclude the section, we are going to define the conductance $\phi$: for any subset of nodes $S\subseteq V$,
+    \begin{equation}
+        \phi(S) := \frac{\delta(S, V\setminus S)}{\min(\text{vol}(S), \text{vol}(V\setminus S))}
+    \end{equation}
+    
+    with the cut weight $\delta$ defined as
+    \begin{equation}
+        \delta(S, V\setminus S) := \sum_{\substack{(u,v)\in E \text{ s.t. }\\ u\in S, v\in V\setminus S}} w(u,v)
+    \end{equation}
+    
+    It is easy to see why the conductance is a good measure of the quality of a cluster: when the conductance for a cut $S$ is low, it means that only a little fraction of the edges crosses the cut and hence the cluster is well inter-connected but loosely connected with the rest of the graph. For ease of notation, we will define the bar function $\bar{S} := V\setminus S$, so that the conductance can be more easily rephrased $\phi(S) = \frac{\delta(S,\bar{S})}{\min(\text{vol}(S), \text{vol}(\bar{S})}$.
+    
+    We can define the conductance for the entire graph $\phi(G) := \min_{S\subseteq V} \phi(S)$.
+    
+    There are some special vectors for which standard notation is widely used in literature: $\vec{p}$ is usually a probability vector, namely a vector such that $\sum_i p(i) = 1$ and all entries $p(i) \geq 0$. $\chi_v$ is a special probability vector s.t.
+    
+    \begin{equation}
+        \chi_v(u) = \begin{cases}
+            1,& \text{if } v=u\\
+            0,& \text{otherwise}
+        \end{cases}
+    \end{equation}
+    
+    and $\psi_S$ is another special vector, namely for some $S\subseteq V$
+    
+    \begin{equation}
+        \psi_S(u) = \begin{cases}
+            \frac{d(u)}{\text{vol}(S)}, & \text{ if } u\in S \\
+            0, & \text{otherwise}
+        \end{cases}
+    \end{equation}
+    
+    Notice that the vector $\psi_S$ is nothing but the stationary distribution centered on the set of vertices $S$. The graph stationary distribution $\pi := \psi_V$.
+    
+    To conclude, we will call the quantity $\hat{k} := \min(k, \text{vol}(G) - k)$.
+    
+\subsection{Hypergraphs}
+\label{subsec:definitions_hypergraphs}
+    
+    A hypergraph $H=(V,E,w)$ is a generalization of a graph, where edges can be subsets of vertices, namely $E\subseteq 2^V$. We can then define the degree of a vertex $u$ as $d(u) := \sum_{e: u\in e}w(e)$. The conductance formula does not change, but the cut weight $\delta$ does:
+    
+    \begin{equation}
+        \delta(S, \bar{S}) := \sum_{e \in E: e\cap S \neq \emptyset \land e\cap\bar{S} \neq \emptyset} w(e)
+    \end{equation}
+    
+    A hypergraph is called $d$-regular if all edges have equal degree $d$. In contrast, it is called $r$-uniform if all hyperedges have the same size $r$. When the edges are unweighted (namely, they are all ones) and the hypergraph is $d$-regular, then it is easy to compute the volume $\text{vol}(H) = dn$. The same happens when the hypergraph is $r$-uniform: $\text{vol}(H) = rm$.
+    
+\subsection{Mixing and Lovasz-Simonovits curve}
+\label{subsec:definitions_mixing_ls_curve}
+
+    A very useful approach in order to prove mixing is the Lovasz-Simonovits curve \cite{Lovsz1993RandomWI}. When dealing with the Lovasz-Simonovits curve, we always assume that the graph is undirected and we substitute any undirected edge $\{u,v\}$ with two directed edges $(u,v), (v,u)$. In order to define the curve, it is useful to define first a sweep cut. 
+    
+    Given a graph $G=(V,E)$ and a random walk probability vector $\vec{p}_t$, then you define a sweep cut $S_j(\vec{p}_t)$ as the set of $j$ vertices $u$ that maximize the ratio $\frac{p_t(u)}{d(u)}$. Notice that such ratio is nothing but the probability distributed on the outgoing edges of the vertex $u$.
+    
+    In order to define the sweep cut, you first compute a permutation $\rho$ of numbers in $[1,n]$, $\rho(1), \rho(2)... \rho(n)$ s.t. $\frac{p_t(\rho(i))}{d(\rho(i))} \geq \frac{p_t(\rho(l)}{d(\rho(l))}$, $\forall l \geq i$. Notice that in case of a tie, you can solve it arbitrarily.
+    
+    Then, you can simply define the sweep cut as the set of $j$ nodes that maximize the probability on the outgoing edges:  
+    \begin{equation}
+        S_j(\vec{p}_t) := \{ \rho(i), \forall i\leq j\} 
+    \end{equation}
+    
+    With this definition at hand, it is now easy to define the Lovasz-Simonovits curve: for any $j\in [1,n]$, you define $k_j = \sum_{i=1}^{j} d(\rho(i))$ as the volume of the sweep cut $S_j(\vec{p}_t)$ (notice that when $j$ is clear from the context, we simply write $k$). Then the Lovasz-Simonovits curve $I_t: [0, \text{vol}(G)]\to [0,1]$ is such that
+    
+    \begin{equation}
+        I_t(k) := \vec{p}_t(S_j(\vec{p}_t))
+    \end{equation}
+    
+    We call the set of points $\{k: k = \sum_{i=1}^{j}d(\rho(i)) \text{ for some j}\}$ \textit{hinge points}. The Lovasz-Simonovits curve is defined in between hinge points by linear interpolation: namely, for any $k$ that is not a hinge point, we call $k'$ the $x$-coordinate of the previous hinge point and $k''$ the $x$-coordinate of the next hinge point, and we can define the curve in $k$ as:
+    
+    \begin{equation}
+        I_t(k) := I_t(k') + \frac{k - k'}{k'' - k'} (I_t(k'') - I_t(k'))
+    \end{equation}
+    
+    It is interesting to notice a few things: first, the curve $I$ is concave. In fact, the angular coefficient of the curve in any point $k$ in between hinge points $\rho(j-1)$, $\rho(j)$ is simply $\frac{p_t(\rho(j))}{d(\rho(j))}$. Since we have sorted the vertices in such a way that this quantity is non-increasing, the angular coefficient is also non-increasing and hence the curve is concave. Another important aspect is that the curve in non-decreasing: in fact, between consecutive hinge points $k_j$ and $k_{j+1}$, $I_t(k_{j+1}) = I_t(k_j) + p_t(\rho(j+1))$. Since the probability on any vertex is non-negative, and the curve is piece-wise linear, then it follows that it must be non-decreasing.
+    
+    An important claim about the Lovasz-Simonovits curve is the following (for the proof, please see \cite{LScurve_decreasing})
+    
+    \begin{lemma}
+        The Lovasz-Simonovits curve at time $t+1$ lies below the curve at time $t$. Namely, $\forall t$ and $\forall k\in[0,\text{vol}(H)]$
+        \begin{equation}
+            I_{t+1}(k) \leq I_t(k)
+        \end{equation}
+    \end{lemma}
+    
+    So, we have seen that the Lovasz-Simonovits curve is a concave function that flattens out at every iteration step: we might wonder what happens when the probability $\vec{p}_t\to_{t\to \infty} \pi$: in this case the angular coefficient of the curve at any point in between hinge point $j$ is $\frac{p_t(\rho(j))}{d(\rho(j))}$, and when $\vec{p}_t$ equals the stationary distribution, then this quantity is a constant: 
+    
+    \begin{equation} 
+        \frac{p_t(\rho(j))}{d(\rho(j))} = \frac{\pi(\rho(j))}{d(\rho(j))} = \frac{\frac{d(\rho(j))}{\text{vol}(G)}}{d(\rho(j)} = \frac{1}{\text{vol}(G)}
+    \end{equation}
+    
+    Hence when the random walk converges to the stationary distribution, then the Lovasz-Simonovits curve flattens out to a straight line between $(0,0)$ and $(\text{vol}(G), 1)$.
+    
+    Surprisingly, it turns out that studying how fast the Lovasz-Simonovits curve converges to a straight line is extremely convenient in order to understand how fast the random walk converges to the stationary distribution. 
+    
+    Hence, in order to study the mixing time of the random walk, it is enough to study the behaviour of the Lovasz-Simonovits curve. 
+    The first rule for proving mixing consists in understanding how much the Lovasz-Simonovits curve decreases from one iteration to the other. The general case for standard lazy random walks says that any hinge point $k$ decreases by:
+    
+    \begin{equation}
+        I_{t+1}(k) \leq \frac{1}{2}(I_t(k-\phi \hat{k}) + I_t(k+\phi \hat{k}))
+    \end{equation}
+    
+    where $\phi$ is the conductance of the best sweep cut wrt the probability vector $\vec{p}_t$. This simply means that for every hinge point $k$, you can take a chord between the two symmetric points $\pm \phi \hat{k}$, and the next iteration curve will lie below such chord. Notice that since the curve is concave, then the chord lies below the hinge point. Next result for proving mixing consists in quantifying the distance between the stationary distribution and the Lovasz-Simonovits curve with respect to the time. The general rule is:
+    
+    \begin{equation}
+        I_t(k) \leq \sqrt{\hat{k}} e^{-\frac{t\phi^2}{4}} + \frac{k}{\text{vol}(G)}
+    \end{equation}
+    
+    It is easy now to see why mixing happens fast: the error that separates the Lovasz-Simonovits curve from the stationary distribution (a straight line with value $\frac{k}{\text{vol}(G)}$) is exponentially decreasing with respect to the time. Hence, in order to achieve an error which is $\frac{1}{\text{poly}(n)}$ for any point $k$, it is sufficient a number of iterations $\sqrt{\frac{\text{vol}(G)}{2}} e^{-\frac{t\phi^2}{4}} \leq \frac{1}{\text{poly}(n)} \implies t = O\left(\frac{\log(n)}{\phi^2}\right)$ (assuming that edge weights are mostly polynomial in $n$, which is the case for instance when the graph is unweighted). 
+
+\subsection{Clustering algorithms for graphs}
+\label{subsec:definitions_clustering_algorithm}
+    
+    In this section, we are going to describe how clustering algorithms work in general graphs: first, let us assume that there is a cut $S^*$ with optimum conductance $\phi^*$, and volume $\leq \frac{1}{2}\text{vol}(G)$. The idea (explored in \cite{SpielmanClustering} and \cite{AndersenPPRClustering}) then is that if you start the random walk from any vertex in $S^g \subseteq S^*$ s.t. $\text{vol}(S^g) \geq \frac{1}{2}\text{vol}(S^*)$, then you want to be able to find a good sweep cut $S$ with conductance $\phi$ not too far from $\phi^*$. 
+    
+    The general process is this: first, you want a leaking result in order to understand how many iterations it takes before a constant amount of probability leaks from $S^*$. In particular this leaking result is usually of the form: assuming that $\vec{p}_0 = \vec{\chi}_v$ and $v\in S^g$
+    
+    \begin{equation}
+        p_t(\bar{S^*}) \leq t \phi^*
+    \end{equation}
+    
+    Which means that after $t = \frac{1}{4\phi^*}$ we still have a probability $\geq \frac{3}{4}$ on the set $S^*$.
+    
+    This implies that 
+    
+    \begin{equation}
+        \left|\sum_{u\in S^*} (p_t(u) - \pi(u))\right|  \geq \frac{3}{4} - \frac{1}{2} = \frac{1}{4}
+    \end{equation}
+    
+    because we assumed the set $S^*$ to have volume at most $\frac{1}{2}\text{vol}(G)$. 
+    
+    At the same time, the mixing result ensures that, in contrast, the difference between the probability at time $t$ and the stationary distribution should be small, namely:
+    
+    \begin{equation}
+        \left|\sum_{u\in S^*} (p_t(u) - \pi(u))\right| \leq \sqrt{\text{vol}(S^*)}e^{-\frac{t\phi^2}{4}}
+    \end{equation}
+        
+    Where $\phi$ is the conductance of the best sweep cut on the probability vector $\vec{p}_t$.
+    
+    Combining the two results, and setting $t=\frac{1}{4\phi^*}$ we get that
+    
+    \begin{equation}
+        \frac{1}{4} \leq \sqrt{\text{vol}(S^*)} e^{-\frac{t\phi^2}{4}} \implies \phi \leq O(\sqrt{\log(\text{vol}(S^*)) \phi^*})
+    \end{equation}
+    
+    namely, the conductance found with a sweep cut is not too far from the optimal conductance of the graph.
+    
+    Notice that the leaking result only holds when the starting vertex $v$ which determines $\vec{p}_0 = \chi_v$ must be such that $v\in S^g$. Hence, it is also of crucial importance to prove that the set $S^g$ has a large volume: namely, in order to have a powerful algorithmic clustering primitive, we need to prove that $\text{vol}(S^g) \geq \frac{1}{2}\text{vol}(S^*)$. This means that when being allowed to pick the starting vertex at random according to the stationary distribution $\psi_{V}$, then the probability that we start from a vertex which is \textit{good} (namely, which is in $S^g$) is high. This results in a probabilistic algorithm for clustering that the authors of \cite{SpielmanClustering} call \texttt{Nibble}.
+    
+    Although the actual details of the algorithm \texttt{Nibble} are vastly more complicated and would need a specific section for a proper discussion (in particular, for the discussion of the running time and of the properties of the output set), notice that for the scope of our analysis it is enough to appreciate the importance of the leaking and of the mixing result, and how is it possible to combine them together to have an elementary primitive for a clustering algorithm.
+
+	\subsection{Clustering algorithms for hypergraphs}
+	\label{subsec:clustering_algos_for_hypergraphs}
+	
+	For hypergraphs, clustering algorithms are more tricky: in fact, it is not possible to define an equivalent discrete diffusion process as a random walk in a graph. This is due to the fact that the Laplacian operator $\mathcal{L}=(I-AD^{-1})$, which describes how the probability mass varies from one iteration to the other $\frac{d\vec{p}_t}{dt} = -\mathcal{L} \vec{p}_t$, is not a linear operator. According to Li et al \cite{Li_Milenkovic_Laplacian_hypergraphs}, the Laplacian operator for hypergraphs can be defined as 
+	
+	\begin{equation}
+		\mathcal{L}_H(\vec{x}) := \left\{\sum_{e\in E} \vec{b}_e \vec{b}_e^T D^{-1}\vec{x} \mid \vec{b}_e \in \argmax_{\vec{b} \in B_e} \vec{b}^T \vec{x}\right\}
+	\end{equation}
+
+	with $B_e$ the convex hull of $\{\chi_v - \chi_u \mid u,v \in e\}$. 
+	
+	The reason why this operator is somewhat hard to treat, is because there can be multiple choices of $\vec{b}_e$ when more than one vertex $u,v\in e$ have equal value $\frac{p_t(u)}{d(u)} = \frac{p_t(v)}{d(v)}$: when this happens, it is necessary to find the correct $\vec{b}_e$ which distributes the probability homogeneously among all vertices maximizing $\vec{b}_e^T\vec{x}$, also taking into account how the other edges behave. Instead, when the values $\frac{p_t(u)}{d(u)}$ are distinct for all $u\in V$, then vectors $\vec{b}_e$ are unique and it is easy to define the hypergraph laplacian. 
+	
+	Taking advantage of this operator, Takai et al \cite{Takai_2020} managed to define a personalized page rank vector $\vec{pr}_{\alpha}(\vec{s}) = \alpha \vec{s} + (1-\alpha)M\vec{pr}_{\alpha}(\vec{s})$ which they proved to be the solution $\vec{x}$ to 
+	
+	\begin{equation}
+	\label{eq:ppr_hypergraph_solution}
+		\vec{s} \in \left(I + \frac{1-\alpha}{2\alpha}\mathcal{L}_H\right)(\vec{x})
+	\end{equation}
+	
+	Finally, using analogue techniques developed by Andersen et al. \cite{AndersenPPRClustering} , they could find good clusters by taking sweep cuts over the page rank vector.
+	
+	The tricky problem about clustering in hypergraphs is then how to compute the personalized page rank vector: usually, you can compute the personalized page rank vector in a graph by simulating a random walk. But for hypergraphs, the page rank vector is the solution as $t\to\infty$ of the differential equation
+	
+	\begin{equation}
+		\frac{d\vec{p}_t}{dt} \in \frac{2\alpha}{1+\alpha}(\vec{s} - \vec{p}_t) - \left(1 - \frac{2\alpha}{1+\alpha}\right)\mathcal{L}_H(\vec{p}_t)
+	\end{equation}
+
+	Since the solution of such a differential equation cannot be computed exactly, the quality of the resulting clustering algorithm is only as good as the approximation factor chosen (in case of Takai et al. \cite{Takai_2020}, they use the Euler Method). 
+	
+	With the issues arising from a continuous diffusion process in mind, in the next Section \ref{sec:extensions_non_d_reg_hypergraphs} we are going to describe a \textit{discrete } diffusion process for hypergraphs with mixing time guarantees. The approach is an innovative idea originally developed by Sheth et al. for regular hypergraphs and yet to be published. The goal of this project is to extend it to irregular hypergraphs.
+	
+\end{document}

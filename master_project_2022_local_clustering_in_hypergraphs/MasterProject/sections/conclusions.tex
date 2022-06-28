@@ -1,0 +1,157 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{{\subfix{../img/}}}
+\begin{document}
+    
+In the previous sections, we have been exploring the mixing properties of the discrete process that describes a random walk in a hypergraph. Recalling what was said in Section \ref{subsec:definitions_clustering_algorithm} about the principles of clustering algorithms, mixing is only half of the required results in order to achieve a proper clustering algorithm: in particular, we also need a leaking result. Unfortunately, proving a proper leaking result for hypergraph is yet (as far as we are aware) an open question. In the following sections we are going to give an intuition of why solving the leaking problem is so hard, and propose some directions for future research in this area.
+
+\subsection{Missing leaking result for hypergraphs}
+\label{subsec:leaking_for_hypergraphs}
+
+    The goal of this section is to be able to prove an equivalent result to the leaking result in Spielman et al. \cite{SpielmanClustering} (Lemma 2.7 on the volume of the set $S^g$). Notice that the proofs are re-adaptations of the proofs contained in the above mentioned paper, and for brevity they have been omitted. As it will be clear later on in the proof, proving an equivalent statement is hard and could not be done, though we hope to shed some light on the argument, and provide some intuition for a possible solution.
+    
+    The final lemma that we would be able to prove is:
+    
+    \begin{lemma}
+        $\forall S\subset V$ s.t. $\text{vol}(S)\leq \frac{1}{2}\text{vol}(H), \exists S^g\subset S \text{ s.t. } \text{vol}(S^g) \geq \frac{1}{2}\text{vol}(S)$ and such that $\forall v\in S^g, \forall t\geq 0$ and with $\vec{p}_0 = \chi_v$  \\
+        \begin{equation}
+        p_t(S) \geq \mathbb{P}(\{\text{random walk never leaves } S\}) \geq 1 - \frac{t\phi_H(S)}{2}
+        \end{equation}
+        
+        Where with $\phi_H$ we mean the conductance of the cut $S$ in the hypergraph $H$.
+    \end{lemma}
+    
+    If we were able to prove such a leaking result, notice that we would be able to build a probabilistic clustering algorithm for hypergraphs using the strategy described in Section \ref{subsec:definitions_clustering_algorithm}.
+    
+    We start with this simple proposition:
+    
+    \begin{proposition}
+    \label{prop:conductance_hypergraph_gte_collapsed_graph}
+        $\forall t \geq 0$, Let $G_t$ be the collapsed graph at time $t$ as described in Section \ref{subsubsec:preliminaries}. Then $\forall S\subset V$ s.t. $\text{vol}(S) \leq \frac{1}{2}\text{vol}(G)$
+        \begin{equation}
+            \phi_H(S) \geq \phi_{G_t}(S)
+        \end{equation}
+    \end{proposition}
+    \begin{proof}
+        In order to prove this proposition, we can easily notice that by construction of $G_t$ it is clear that $\text{vol}(S)$ is the same in both the hypergraph $H$ and the collapsed graph $G_t$. So, it is enough to prove that $\forall S\subset V$,  $E_H(S,\bar{S}) \geq E_{G_t}(S,\bar{S})$. We can prove the previous claim by simply saying that it holds that $\forall e\in E_{G_t}, e\in E_{G_t}(S, \bar{S}) \implies e' \in E_H(S, \bar{S})$, with $e'$ being the hyperedge that when collapsed created the edge $e$. This is clearly true by construction. So, since the number of crossing edges in the hypergraph $H$ is certainly larger or equal than the crossing edges in the collapsed graph $G_t$, it also holds that the conductance is higher.
+    \end{proof}
+    
+    Here we need to introduce some notation: we define $M_t^{\vec{s}}$ the transition probability matrix, obtained at time $t$ with the collapsing procedure described in Section \ref{subsubsec:preliminaries}, when the starting probability distribution $\vec{p}_0 = \vec{s}$.
+    
+    Moreover, let us define the matrix $D_S$ as the diagonal matrix with entries $D(u,u) = 1$ if $u\in S$ and zero otherwise. 
+    
+    In addition, we need to take into account that the transition probability matrix differs between our discrete process (described in Section \ref{subsubsec:preliminaries}) and Spielman et al.'s (\cite{SpielmanClustering}, Section 2.2): in particular, for standard graphs the transition probability matrix for a random walk at time $t$ is the $t$ power matrix $M^t$ (where $M$ is the transition probability matrix $M:= \frac{1}{2}(I + AD^{-1})$). Instead, in our process, the transition probability matrix differs for different times $t'$ since at every iteration we collapse the hypergraph into a different $G_{t'}$ with a transition probability matrix $M_{t'}^{\vec{s}}$ (of course, it also depends on the starting probability distribution). Hence, the transition probability matrix for our process at time $t$ can be described as the product of the transition probability matrices at time $t' \leq t$: 
+    \begin{equation}
+        \prod_{\substack{0 \leq t' \leq t:\\ t' = k\cdot dt\\ \text{ for some }k\in \mathbb{N}}} M_{t'}^{\vec{s}}
+    \end{equation}
+    
+    To begin with, we claim that it is possible to prove an analogous claim as the Escaping Mass proposition:
+    
+    \begin{proposition}{Escaping Mass:}
+    \label{prop:escaping_mass}
+        $\forall t \geq 0, \forall S\subseteq V$ s.t. $\text{vol}(S) \leq \frac{1}{2}\text{vol}(H)$
+        \begin{equation}
+            \vec{1}^T\bigg(\prod_{\substack{0 \leq t'\leq t:\\ t' = k\cdot dt\\ \text{ for some }k\in \mathbb{N}}}(D_S M_{t'}^{\psi_S})\bigg) \vec{\psi}_S \geq 1 - \frac{t \phi_H(S)}{2}
+        \end{equation}
+    \end{proposition}
+    
+    The proof is omitted, but it is a simple re-adaptation of the proofs in Propositions 2.2, 2.4, 2.5 in \cite{SpielmanClustering} for our discrete process, with the additional Lemma \ref{prop:conductance_hypergraph_gte_collapsed_graph}.
+    
+    Notice that, although this result resembles our leaking result goal, it is not equivalent: in fact, this leaking result only works when the starting probability vector is the stationary distribution over some set $S$. In order to understand why this is not enough to build an algorithm for clustering, notice that a clustering algorithm starts the random walk from a probability distribution $\chi_v$, for some $v$ picked at random. Hence, it is essential to prove that there is a large set of vertices $S^g \subset S$ such that when starting the random walk from $\chi_v$ for any $v\in S^g$, the probability leaking out of $S$ is small.
+    
+    So, if we define $S^g$ to be
+    \begin{equation}
+        S^g := \bigg\{v \in S : \chi_{S}^T \bigg(\prod_{\substack{0 \leq t'\leq t:\\ t' = k\cdot dt\\ \text{ for some }k\in \mathbb{N}}} M_{t'}^{\chi_v} \bigg) \chi_v \geq 1 - t \phi_H(S) \bigg\}
+    \end{equation}
+    
+    then it is enough to prove that the volume of $S^g$ is large: if this is the case, in fact, then by picking vertices at random we have a high chance of picking one which is \textit{good}, namely which falls in $S^g$ and hence has good leaking properties.
+    
+    As we will see, the generalization of the leaking result for hypergraphs fails here: in particular, it is not possible to prove the following lemma:
+    
+    \begin{lemma} \label{lemma:volume_of_S_g}
+        $\text{vol}(S^g) \geq \frac{1}{2} \text{vol}(S)$
+    \end{lemma}
+    
+    The idea behind this lemma is that when picking vertices at random according to the stationary distribution, the probability that the Escaping Mass Proposition \ref{prop:escaping_mass} holds also when the starting probability distribution is of the form $\chi_v$, is a constant. Unlike previous propositions, we will show that this lemma is hard to generalize for hypergraphs.
+    
+    To begin with, we define a new subset of $S$:
+    
+    \begin{equation}
+        S' := \bigg\{v\in S : \vec{1}^T \bigg(\prod_{\substack{0 \leq t'\leq t:\\ t' = k\cdot dt\\ \text{ for some }k\in \mathbb{N}}}(D_S M_{t'}^{\chi_v})\bigg) \chi_v \geq 1 - t \phi_H(S) \bigg\}
+    \end{equation}
+    
+    Namely, the set of vertices $v\in S$ such that the probability of never escaping from $S$ when starting from $v$ at any step $t'\leq t$ is larger than $1-\phi_H(S) t$.
+    
+    It is easy to see that $S' \subseteq S^g$: in fact the condition to belong to $S^g$ is looser than the condition to belong to $S'$.
+    
+     \begin{align}
+        \chi_{S}^T \bigg(\prod_{\substack{0 \leq t'\leq t:\\ t' = k\cdot dt\\ \text{ for some }k\in \mathbb{N}}} M_{t'}^{\chi_v}\bigg) \chi_v \geq \chi_S^T \bigg(\prod_{\substack{0 \leq t'\leq t:\\ t' = k\cdot dt\\ \text{ for some }k\in \mathbb{N}}}(D_S M_{t'}^{\chi_v})\bigg) \chi_v
+    \end{align}
+    
+    Due to Proposition 2.4 in \cite{SpielmanClustering}
+    
+    So, if we are able to prove that $\text{vol}(S')\geq \frac{1}{2}\text{vol}(S)$, then it must also hold that $\text{vol}(S^g)\geq \frac{1}{2}\text{vol}(S)$.
+    
+    Now it comes the tricky part which is hard to generalize: in order to prove the final claim, for general graphs we take advantage of this fact: when the transition probability matrix $M$ does not change between iterations, it is possible to re-write the outcome of Claim \ref{prop:escaping_mass} as
+    
+    \begin{align}
+        \frac{1}{2} t \phi_H(S) & \geq 1 - \vec{1}^T\left(D_S M\right)^t \psi_S \label{eq:S_g_mean_1}\\
+        & = \sum_{u\in S}\frac{d(u)}{\text{vol}(S)} \left(1 - \vec{1}^T\left(D_S M\right)^t\chi_v\right) \label{eq:S_g_mean_2} \\
+        & \geq \sum_{u\in \bar{S}'} \frac{d(u)}{\text{vol}(S)} (1 - \vec{1}^T(D_S M)^t \chi_v)) \\
+        &\geq \frac{\text{vol}(\bar{S}')}{\text{vol}(S)} t \phi(S) \\
+        &\implies \frac{\text{vol}(S')}{\text{vol}(S)} \geq \frac{1}{2}
+    \end{align}
+    
+    However, when the transition probability matrix changes according to the starting distribution (as it is the case for the discrete process described in \ref{subsubsec:preliminaries}), then the Equality in between Equations \ref{eq:S_g_mean_1} and \ref{eq:S_g_mean_2} does not hold:
+    
+    \begin{multline}
+        1 - \vec{1}^T\bigg(\prod_{\substack{0 \leq t'\leq t:\\ t' = k\cdot dt\\ \text{ for some }k\in \mathbb{N}}} (D_S M_{t'}^{\psi_S})\bigg) \psi_S \neq \\ \sum_{u\in S}\frac{d(u)}{\text{vol}(S)} \bigg(1 - \vec{1}^T\bigg(\prod_{\substack{0 \leq t'\leq t:\\ t' = k\cdot dt\\ \text{ for some }k\in \mathbb{N}}} (D_S M_{t'}^{\chi_u})\bigg)\chi_u\bigg)
+    \end{multline}
+    
+    and, instead, there is a $\leq$ relation between them, which is the opposite of what we need. To see why this is the case, let's try to quantify the two sides of the inequality above, at the very first time step of the random walk: on the left hand side, we have that 
+    
+    \begin{align}
+        1 - \vec{1}^T\left(D_S M_0^{\psi_S}\right)\psi_S &=
+        dt \sum_{e\in E(S, \bar{S})} \frac{1}{\text{vol}(S)}
+    \end{align}
+    
+    This is because whenever there is a crossing hyperedge $e\in E$, then the collapsed edge in the graph $G_0$ will be of the form $(u,v): u\in S \land v\in \bar{S}$ by the way we have chosen the collapsing strategy (in fact, vertices in $S$ have a non-zero probability, vertices in $\bar{S}$ have a zero probability when the initial probability distribution is $\psi_S$), and the probability flowing on such edge is $\frac{p(u)}{d(u)} = \frac{\psi_S(u)}{d(u)} = \frac{1}{\text{vol}(S)}$. The $dt$ factor is due to the length of the step. 
+    
+    For the right hand side, instead, we have that
+    
+    \begin{align}
+        \sum_{u\in S}\frac{d(u)}{\text{vol}(S)} \bigg(1 - \vec{1}^T (D_S M_{t'}^{\chi_u})\chi_u\bigg) = \\
+        \intertext{assuming all crossing hyperedges $e\in E(S,\bar{S}): u\in e$ are collapsed into $(u, v): v\in \bar{S}$}
+        dt \sum_{u\in S}\frac{d(u)}{\text{vol}(S)} |\{e\in E(S,\bar{S}): u\in e\}| \frac{\chi_u(u)}{d(u)} = \\
+        dt \sum_{e
+        \in E(S, \bar{S})} \sum_{u\in e: u\in S} \frac{1}{\text{vol}(S)}
+    \end{align}
+    
+    which is definitely larger than the left hand side quantity. 
+    
+    This inequality, though, might suggest a reasonable way to find a proper lower bound: for instance, when the graph is $r$-uniform, then the right hand side is at most $r$ times larger than the left hand side (since every hyperedge can be counted up to $r$ times).
+    
+    Hence, though this claim is true for the first iteration:
+    \begin{claim}
+    	in an $r$-uniform hypergraph
+    	\begin{multline}
+    		1 - \vec{1}^T(D_S M_{0}^{\psi_S}) \psi_S
+    		 \geq \frac{1}{r} \sum_{u\in S} \frac{d(u)}{\text{vol}(S)}\bigg(1 - \vec{1}^T(D_S M_{0}^{\chi_u})\chi_u\bigg)
+    	\end{multline}
+    \end{claim}
+
+    Additional empirical evidence show that this fact is also true for larger $t'>0$ though, unfortunately, a proper proof of this conjecture could not be found. Hence, assuming the conjecture
+    
+    \begin{conj}
+    	In $r$-uniform hypergraphs,
+	    \begin{align}
+	        \frac{1}{2} t\phi_H(S) & \geq
+	        1 - \vec{1}^T\bigg(\prod_{\substack{0 \leq t'\leq t:\\ t' = k\cdot dt\\ \text{ for some }k\in \mathbb{N}}}(D_S M_{t'}^{\psi_S})\bigg) \psi_S \\
+	        & \geq \frac{1}{r} \sum_{u\in S} \frac{d(u)}{\text{vol}(S)}\bigg(1 - \vec{1}^T\bigg(\prod_{\substack{0 \leq t'\leq t:\\ t' = k\cdot dt\\ \text{ for some }k\in \mathbb{N}}}(D_S M_{t'}^{\chi_u})\bigg)\chi_u\bigg)
+	    \end{align}
+	\end{conj}
+    
+    where $r$ is the $r$-uniformity factor of the hypergraph, or in case of a non uniform hypergraph, $r := \max_{e\in E}|e|$. 
+    
+    An extremely interesting future result would be to find proper theoretical evidence that it is actually the case. In case it was true, in fact, we would be able to conclude that the leaking result for $r$-uniform hypergraphs is \textit{only} $r$ times weaker than in general graphs. To see this, it is enough to re-define $S^g:=\{u\in S: \chi_{\bar{S}}^T \prod_{t'\leq t}(M_{t'}) \chi_u \leq r t \phi_H(S)\}$. This ensures that $\text{vol}(S^g) \geq \frac{1}{2}\text{vol}(S)$. The reason why the leaking result is $r$ times weaker than in standard graphs, is because when picking a node $v\in S^g$, the probability that leaks out of $S$ is $r$ times larger than what would leak out of $S$ in a graph. At the same time, the fact that instead the mixing result is theoretically $r$-times stronger ($t = O(\frac{\log(\text{vol}(H))}{r\phi^2})$ due to  \cite{continuous_laplacian_hypergraph}, \cite{Kapralov2020Nov}) would allow us to find clustering algorithms for $r$-uniform hypergraphs with equivalent guarantees than the ones for graphs. 
+    
+\end{document}

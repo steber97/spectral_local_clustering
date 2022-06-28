@@ -1,0 +1,19 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{{\subfix{../img/}}}
+\begin{document}
+    An interesting graph problem is the one of clustering. It consists of finding a good set of vertices $C$ which has many inner edges and it is sparsely connected with the rest of the graph. The way you measure the quality of the cluster, is by minimizing the \textit{conductance} $\phi(C)$. A well-established method to find good clusters is using random walks: you must assume that there exists a cluster $C^*$ with optimum (minimum) conductance $\phi(C^*) = \phi^*$. Then, if the random walk starts centered in a vertex $v_0\in C^*$, after a few evolution steps you can take a sweep cut over the evolved probability vector (namely, a subset of vertices sorted by probability) and the resulting cluster $C$ has a conductance $\phi(C) = \hat{\phi} \leq f(\phi^*)$, where $f$ is some error function (usually the square root).
+    
+    The usual way to prove such result is by dividing the problem of clustering into \textit{mixing} and \textit{leaking}: with the leaking result you can prove that after a few random step, the probability \textit{leaking from} $C$ is small, namely \textit{the probability inside }$C \geq q(\phi^*)$ (where $q$ is some function depending on the optimal conductance). 
+    
+    With the mixing result, you prove instead the opposite: namely, after a few iterations \textit{the probability inside} $C$ must be small $\leq r(\hat{\phi})$ (where $r$ is some function depending on the output conductance of the algorithm).
+    
+    This series of inequality finally allows you to relate the output conductance of the algorithm $\hat{\phi}$ with the optimal conductance of the graph $\phi^*$.
+    
+    Although this general approach is well studied in literature for standard graphs (\cite{SpielmanClustering}, \cite{AndersenPPRClustering}), this fails to extend nicely to hypergraphs. In particular, it is hard to define a discrete random walk on a hypergraph, which makes both mixing and leaking results hard to prove. An interesting and encouraging approach is the one studied by Takai et al. \cite{Takai_2020}. But, although they could prove both a mixing and a leaking result for the personalized page rank vector, they use a continuous diffusion process (based on the hypergraph Laplacian explored by Chan et al. \cite{continuous_laplacian_hypergraph}) in order to compute the page rank vector (rather than a discrete one): this makes the algorithmic and numerical result somehow dependant on the approximation quality chosen (in their case, they use the Euler method in order to compute the solution of the heat equation), other than being theoretically more cumbersome to handle.
+    
+    Recently, Sheth et al. managed to find a discrete process in order to perform a random walk in a $d$-regular hypergraph, and proved mixing using the well established Lovasz-Simonovits curve technique \cite{Lovsz1993RandomWI}. 
+    
+    The goal of this project is to extend the mixing result found by Sheth et al. to irregular hypergraphs. In the remainder of the document, we are going to provide the proof for the extension of the mixing result to irregular hypergraphs in Section \ref{sec:extensions_non_d_reg_hypergraphs}. Then we are going to discuss in Section \ref{sec:discussion} whether the result found is as powerful as the one for the $d$-regular case. In addition, in Section \ref{sec:experiments} we are going to prove with empirical evidence that the results obtained are in line with the theoretical guarantees. To conclude, we present in Section \ref{sec:conclusion} a brief introduction of the leaking problem, which remains at the moment unsolved, and provide some insight for future works on the argument.
+    
+    
+\end{document}

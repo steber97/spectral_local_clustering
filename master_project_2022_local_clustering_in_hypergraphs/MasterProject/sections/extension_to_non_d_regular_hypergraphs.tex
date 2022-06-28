@@ -1,0 +1,378 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{{\subfix{../img/}}}
+\begin{document}
+
+In this section we are going to explore the mixing result found by Sheth et al. for $d$-regular hypergraphs and extend it to irregular hypergraphs: the authors have found a discrete process in order to evolve the probability vector $\vec{p}_t$, such that the Lovasz-Simonovits curve with respect to such a probability vector respects the mixing result:
+
+\begin{theorem}
+\label{theorem:mixing_theorem_regular_hypergraphs}
+    Mixing result for $d$-regular hypergraphs: when $I_t$ is the Lovasz-Simonovits curve computed using the probability vector $\vec{p}_t$, coming from the discrete diffusion process described in \ref{subsubsec:preliminaries}, then $\forall k \in [0, \text{vol}(H)]$, $t\in \mathbb{N}$
+    \begin{equation}
+        I_t(k) \leq \sqrt{\min\left(\frac{k}{d}, \frac{\text{vol}(H) - k}{d} \right)} e^{-\frac{t}{4 \phi^2}} + \frac{k}{\text{vol}(H)}
+    \end{equation}
+\end{theorem}
+
+Before starting with the proof, it is important to point out that this process is of great relevance because it is a discrete one, unlike the processes known so far with bounded mixing properties in hypergraphs (\cite{Takai_2020}, \cite{continuous_laplacian_hypergraph}) which are, instead, continuous. The benefit of a discrete process over a continuous one, apart from being of more immediate understanding, is that a discrete process can be simply implemented with an algorithm. 
+
+The underlying idea is as follows: at every iteration $t$, you collapse the hypergraph $H$ into a multigraph $G_t$. On this multigraph, it is possible to perform a discrete step of size $dt$ using the formula $\vec{p}_{t+dt} = ((1-dt)I+dtAD^{-1})\vec{p}_t$. The evolved probability vector respects the usual recursive Lovasz-Simonovits upper bound $I_{t+dt}(k) \leq (1-2dt) I_t(k) + 2dt(\frac{1}{2}I_t(k-\phi \hat{k}) + \frac{1}{2}I_t(k+\phi \hat{k}))$ which is sufficient to achieve an exponentially fast (with respect to the time $t$) mixing: $I_t(k) \leq \sqrt{\hat{k}}e^{\phi^2 t} + \frac{k}{\text{vol}(H)}$.
+In the following sections we are going to describe the details of the proof.
+
+\subsection{Preliminaries}
+\label{subsubsec:preliminaries}
+
+Let $H = (V, E)$ be an hypergraph, and $p_t$ be any probability probability vector. You can think of $\vec{p}_0$ as the probability vector centered in some vertex, namely $\vec{p}_0 = \chi_v$ for some $v\in V$. For every $e\in E$, let
+
+\begin{equation}
+    v^t_{\text{max}}(e) := \argmax_{v\in e} \frac{p_t(v)}{d(v)}
+\end{equation} 
+\begin{equation}
+    v^t_{\text{min}}(e) := \argmin_{v\in e} \frac{p_t(v)}{d(v)}
+\end{equation}
+
+where $d(v)$ is the degree of $v$. In case of a tie, it is important to solve it in such a way that $v^t_{\text{max}}(e)$ is the vertex with the smallest index, and $v^t_{\text{min}}(e)$ is the one with largest index. Notice the analogy with the hypergraph Laplacian described by Li et al in Section \ref{subsec:clustering_algos_for_hypergraphs}, in case the probability vector is made by distinct entries $\frac{p_t(u)}{d(u)}$ $\forall u\in V$. Then, the vector $\vec{b}_e$ has as non-zero entries exactly our $v_{\text{max}}^t$ and $v_{\text{min}}^t$. The discretization of our process w.r.t. the continuous one described in Section \ref{subsec:clustering_algos_for_hypergraphs} comes precisely from the fact that we solve ties easily.
+
+Let $G_t = (V, E_t)$ be the collapsed multigraph such that $\forall e\in E, (v_{\text{min}}^t(e), v_{\text{max}}^t(e)) \in E_t$. In addition, in order to preserve the vertex degree of the original hypergraph, we add enough self-loops to every $v\in V$. Notice that no vertex $v$ can be in more than $d(v)$ edges of type $(v_{\text{min}}^t(e), v_{\text{max}}^t(e))$. This means that the degree $d_t(v)$ of every vertex in the collapsed graph is such that $d_t(v) \leq d(v)$. Hence, by adding the right amount of self loops $d(v) - d_t(v)$, we can always make sure that the degree of every vertex in the collapsed graph is equal to the degree of the same vertex in the original hypergraph. This also implies that $\text{vol}(H)= \text{vol}(G_t)$.
+
+Let $dt$ be a constant $\leq \frac{1}{2}$, the discrete length of the step. Let $A_t$ be the symmetric adjacency matrix $A_t(u,v) = w(u,v)$ where $w(u,v)$ is the weight function, namely the number of equal edges $(u,v)$ in the multigraph $G_t$. Let us define 
+
+\begin{equation}
+    M_t := (1-dt)I + dtA_tD^{-1}
+\end{equation}
+
+the random walk transition probability matrix, and finally let 
+
+\begin{equation} 
+    \vec{p}_{t+dt} := M_t \vec{p}_t
+\end{equation}
+
+be the evolved probability vector.
+
+To conclude, we call the sweep cut $S_j(\vec{p}_t)$ the set of $j$ vertices that maximize the quantity $\frac{p_t(v)}{d(v)}$. Once again, we are going to solve ties in such a way that vertices with smallest index come first.
+
+\subsection{Changing Edge Set}
+\label{subsubsec:changing_edge_set}
+
+Let $S_j(\vec{p}_{t+dt})$ be a sweep cut with conductance $\phi$ with respect to the edge set $E_{t+dt}$. Because of how we solved ties in the choice of the sweep cut and in the choice of $v_{\text{max}}^{t+dt}(e)$ and $v_{\text{min}}^{t+dt}(e)$, it is possible to prove that also in the hypergraph $H$ the conductance of the cut $(S_j(\vec{p}_{t+dt}), V \setminus S_j(\vec{p}_{t+dt}))$ is $\phi$. In order to prove it, we will show this simple fact: 
+\begin{fact}
+\begin{multline}
+    e \in E \text{ crosses } S_j(\vec{p}_{t+dt}) \iff \\ \text{the collapsed edge } (v_{\text{max}}^{t+dt}(e), v_{\text{min}}^{t+dt}(e)) \text{ crosses } S_j(\vec{p}_{t+dt})
+\end{multline}
+\end{fact}
+
+Notice that, as soon as the above fact is proved, then it is easy to see that the conductance of the cut $S_j(\vec{p}_{t+dt})$ is $\phi$ in both the hypergraph $H$ and in the collapsed graph $G_{t+dt}$: in fact the volume of every vertex in $H$ and in $G_{t+dt}$ does not change by construction, and the volume of the set of crossing edges is equal, since we ensured with the fact above that there is a one-to-one correspondence between the crossing edges in $H$ and in the collapsed graph $G_{t+dt}$. 
+
+\begin{proof}
+    
+    We can prove the above fact by simply solving the two directions of the implication: in order to prove 
+    \begin{multline}
+        \text{the collapsed edge } (v_{\text{max}}^{t+dt}(e), v_{\text{min}}^{t+dt}(e)) \text{ crosses } S_j(\vec{p}_{t+dt}) \implies \\ e \in E \text{ crosses } S_j(\vec{p}_{t+dt})
+    \end{multline}
+    
+    it is enough to notice that when the edge $(v_{\text{max}}^{t+dt}(e), v_{\text{min}}^{t+dt}(e))$ crosses the cut (namely, $v_{\text{max}}^{t+dt}(e)\in S_j(\vec{p}_{t+dt})$ and $v_{\text{min}}^{t+dt}(e) \in \bar{S}_j(\vec{p}_{t+dt})$), then since both $v_{\text{max}}^{t+dt}(e)$ and $v_{\text{min}}^{t+dt}(e)$ $\in e$ by construction, then also $e$ is cut because there are at least two nodes in opposite sides of the cut $S_j(\vec{p}_{t+dt})$.
+    
+    For the inverse direction, we proceed with a different argument: assume $\rho$ is the permutation of vertices that induces the sweep cut $S_j(\vec{p}_{t+dt})$. Then of all vertices $u\in e$, $v_{\text{max}}^{t+dt}(e)$ is the one that appears first in $\rho$, and $v_{\text{min}}^{t+dt}(e)$ is the one that appears last. Notice that this claim is enough to prove the inverse direction: when $e$ is cut, then it means that $\exists u\in e: u\in S_j(\vec{p}_{t+dt})$ (hence, the position of $u$ in the permutation $\rho$ is smaller or equal than $j$), and also $\exists v\in e: v\in \bar{S}_j(\vec{p}_{t+dt})$ (hence the position of $v$ in the permutation $\rho$ is strictly larger than $j$). By the above claim, since $v_{\text{max}}^{t+dt}(e)$ comes before $u$ in $\rho$, and $v_{\text{min}}^{t+dt}(e)$ comes after $v$ in $\rho$, then also the collapsed edge is cut by the sweep cut $S_j(\vec{p}_{t+dt})$. 
+    It now remains to prove why $v_{\text{max}}^{t+dt}(e)$ is the first vertex in $e$ to appear in the permutation $\rho$ (the argument for $v_{\text{min}}^{t+dt}(e)$ to appear as the last is analogous): when values $\frac{p_{t+dt}(u)}{d(u)}$ are distinct for all $u\in e$, then $v_{\text{max}}^{t+dt}(e)$ is the vertex $u\in e$ with highest $\frac{p_{t+dt}(u)}{d(u)}$ value by construction, hence it appears first (among the vertices in $e$) in the permutation $\rho$. The case which is more difficult to handle is in case there are multiple vertices $v,u \in e$ with equal $\frac{p_{t+dt}(u)}{d(u)} = \frac{p_{t+dt}(v)}{d(v)}$. But, since we have solved both ties in the construction of $\rho$ and in the selection of $v_{\text{max}}^{t+dt}(e)$ by letting first vertices with lower index, we are sure that indeed $v_{\text{max}}^{t+dt}(e)$ is the first vertex in $e$ to appear in $\rho$. A similar (but opposite) argument shows that $v_{\text{min}}^{t+dt}(e)$ is the last vertex in $e$ to appear in the permutation $\rho$. This concludes the proof.
+
+\end{proof}
+
+Although we have just ensured that the conductance of $S_j(\vec{p}_{t+dt})$ is the same in the hypergraph $H$ and in the collapsed graph $G_{t+dt}$, it might be possible that the conductance of $S_j(\vec{p}_{t+dt})$ on the edge set $E_t$ is less than $\phi$: it might happen, in fact, that for a crossing hyperedge $e\in E$, the collapsed edge $(v_{\text{min}}^{t+dt}(e), v_{\text{max}}^{t+dt}(e))$ crosses the bipartition but the edge $(v_{\text{min}}^{t}(e), v_{\text{max}}^{t}(e))$ does not. When this happens, then the following must hold:
+
+\begin{itemize}
+    \item first, it must be true that $v_{\text{max}}^{t+dt}(e) \in S_j(\vec{p}_{t+dt})$ and $v_{\text{min}}^{t+dt}(e) \notin S_j(\vec{p}_{t+dt})$, because $S_j(\vec{p}_{t+dt})$ contains the vertices $v$ that maximize the quantity $\frac{p_{t+dt}(v)}{d(v)}$.
+    \item Second, since $(v_{\text{min}}^t(e), v_{\text{max}}^t(e))$ does not cross the bipartition, either $v_{\text{min}}^{t+dt}(e)$, $v_{\text{min}}^{t}(e)$ and $v_{\text{max}}^{t}(e)$ are outside the set $S_j(\vec{p}_{t+dt})$ (which means that the edge $(v_{\text{max}}^{t}(e), v_{\text{max}}^{t+dt}(e))$ cuts the bipartition), or $v_{\text{max}}^{t+dt}(e), v_{\text{min}}^{t}(e)$ and $v_{\text{max}}^{t}(e)$ are inside $S_j(\vec{p}_{t+dt})$, and then  $(v_{\text{min}}^{t}(e), v_{\text{min}}^{t+dt}(e))$ cuts the bipartition. 
+\end{itemize}
+
+So, we can always add to $E_t$ another collapsed edge $(v_{\text{max}}^{t+dt}(e), v_{\text{max}}^{t}(e))$ or $(v_{\text{min}}^{t+dt}(e), v_{\text{min}}^{t}(e))$ so that the conductance of the cut $S_j(\vec{p}_{t+dt})$ on the edge set $E_t$ has conductance $\phi$.
+In order to preserve the conductance, though, we cannot alter the volume of the graph: it is enough to remove enough self loops from the vertices where we have added edges. Let us call the new edge set $\tilde{E}_t$: now, we can see that $E_t$, $E_{t+dt}$ and $\tilde{E}_t$ have the same degree on every vertex, and the number of edges cutting the bipartition $S_j(\vec{p}_{t+dt})$ is equal in both edge sets $\tilde{E}_t$ and $E_{t+dt}$. 
+
+\begin{observation}
+    It might happen that, when adding an edge of type \\ $(v_{\text{min}}^t(e), v_{\text{min}}^{t+dt}(e))$ to $\tilde{E}_t$ (or, analogously $(v_{\text{max}}^t(e), v_{\text{max}}^{t+dt}(e))$), and we need to remove one self loop from both $v_{\text{min}}^{t+dt}(e)$ and from $v_{\text{min}}^{t}(e)$, there are not enough self loops to remove. For example, the vertex $u = v_{\text{min}}^t(e)$ is the one that minimizes the quantity $\frac{p_t(v)}{d(v)}$ $\forall v\in V$. Hence, for every hyperedge $e$ s.t. $u \in e$, the edge $(u, v_{\text{max}}^t(e))$ will be added to $u$. This implies that $u$ has already degree $d(u)$, without adding any self loop. Hence, if for some other $e' \in E$ we need to add the edge $(u, v_{\text{min}}^{t+dt}(e'))$, we would not have any self loop to remove from $u$, so that the graph volume remains unchanged. In order to solve this possible event, it is simply enough to double the degree of every node by adding self loops: this ensures that the number of self loops in every $v\in V$ is always sufficiently large. At the same time, the conductance only changes by a constant factor: since we have doubled the volume without adding any crossing edge (self loops never cross any cut), the conductance is half the original conductance, which is perfectly fine for the scope of our analysis.
+\end{observation}
+
+We call $\tilde{\vec{p}}_{t+dt}$ the evolution of $\vec{p}_t$ on $\tilde{E}_t$. It is possible now to claim the following lemma:
+
+\begin{lemma}
+\label{lemma:probability_more_concentrated_in_cut}
+    $\tilde{p}_{t+dt}(v) \geq p_{t+dt}(v)$ $\forall v\in S_j(\vec{p}_{t+dt})$, and $\tilde{p}_{t+dt}(u) \leq p_{t+dt}(u)$ $\forall u \notin S_j(\vec{p}_{t+dt})$.
+\end{lemma}
+
+\begin{proof}
+    Let's first prove that when $v\in S_j(\vec{p}_{t+dt}) \implies \tilde{p}_{t+dt}(v) \geq p_{t+dt}(v)$. First, notice that the $v$-th coordinate of $\vec{p}_{t+dt} = M_t \vec{p}_t$ (and equivalently for $\tilde{p}_{t+dt} = \tilde{M}_t \vec{p}_t$) is only affected by the direct neighbors of $v$ (the $v$-th row of the adjacency matrix $A_t$ is zero in all entries that are not direct neighbors of $v$). Hence, when the neighborhoods of $v$ $\text{neigh}_{E_t}(v) = \text{neigh}_{\tilde{E}_t}(v)$, then also the value $p_{t+dt}(v) = \tilde{p}_{t+dt}(v)$. When the neighborhood of $v$ changes, instead, it must hold that for some $e \in E$ that contains $v$, the edge $(v_{\text{min}}^{t+dt}(e), v_{\text{max}}^{t+dt}(e))$ crosses the cut, and $(v_{\text{min}}^{t}(e), v_{\text{max}}^{t}(e))$ does not. This further implies that it has been added to $\tilde{E}_t$ either the edge $(v_{\text{min}}^{t}(e), v_{\text{min}}^{t+dt}(e))$ or the edge $(v_{\text{max}}^{t}(e), v_{\text{max}}^{t+dt}(e))$. Let us now try to understand what vertex can $v$ be: since we assumed that $v \in S_j(\vec{p}_{t+dt})$, then certainly $v \neq v_{\text{min}}^{t+dt}(e)$; in fact, we assumed that $(v_{\text{min}}^{t+dt}(e), v_{\text{max}}^{t+dt}(e))$ crosses the cut, and by how we select the vertices in $S_j(\vec{p}_{t+dt})$, $v_{\text{max}}^{t+dt}$ must be the vertex in the bipartition (because by definition it has higher $\frac{p_{t+dt}(v)}{d(v)}$ value). At the same time, $v \neq v_{\text{max}}^t(e)$ because the added edge $(v_{\text{max}}^t(e), v_{\text{max}}^{t+dt}(e))$ would need to cross the bipartition, but both vertices by assumption would need to belong to $S_j(\vec{p}_{t+dt})$ and hence the edge could not be a crossing edge. Hence, the vertex $v$ can be either $v = v_{\text{min}}^{t}(e)$ (in which case, it would get connected with $v_{\text{min}}^{t+dt}(e)$) or $v = v_{\text{max}}^{t+dt}(e)$ (and it would get connected to $v_{\text{max}}^{t}(e)$). In both cases, $v$ gets connected in $\tilde{E}_t$ with a vertex $u'$ that has a higher value than the self loop, namely $\frac{p_t(u')}{d(u')} \geq \frac{p_t(v)}{d(v)}$. We can now say that the value $\tilde{p}_{t+dt}(v) - p_{t+dt}(v) \geq 0$:
+    
+    \begin{align}
+        \tilde{p}_{t+dt}(v) - p_{t+dt}(v) & = 
+        (\tilde{M}_t \vec{p}_t)(v) - (M_t \vec{p}_t)(v) \\ & =
+        \label{eq:ptilde_minus_pt}
+         (1 - dt)p_t(v) + dt \sum_{u\in \text{neigh}_{\tilde{E}_t}(v)} \frac{p_t(u)}{d(u)} - \nonumber \\ & (1 - dt)p_t(v) - dt \sum_{u\in \text{neigh}_{E_t}(v)} \frac{p_t(u)}{d(u)} \\ & \geq
+         \label{eq:ptilde_minus_pt_2}
+         \frac{p_t(u')}{d(u')} - \frac{p_t(v)}{d(v)} \\ 
+         & \geq 0
+    \end{align}  
+    
+    Where the $\geq$ between equations \ref{eq:ptilde_minus_pt} and \ref{eq:ptilde_minus_pt_2} comes from the fact that there might be more than one edge difference in the two neighborhoods (all of which have higher $\frac{p_t}{d}$ value than the self loops that get removed in $\tilde{E}_t$).
+    This finally imples that $\tilde{p}_{t+dt}(v) \geq p_{t+dt}(v)$ when $v \in S_j(\vec{p}_{t+dt})$. The proof for the case $v \notin S_j(\vec{p}_{t+dt})$ is analogous: $v$ can only be $v_{\text{min}}^{t+dt}(e)$ or $v_{\text{max}}^{t}(e)$, and gets connected to a vertex $u'$ which has lower $\frac{p_t(u')}{d(u')} \leq \frac{p_t(v)}{d(v)}$ value, while losing a self loop. Hence, the value of $\tilde{p}_{t+dt}(v) \leq p_{t+dt}(v)$ when $v\notin S_j(\vec{p}_{t+dt})$.
+\end{proof}
+
+Lemma \ref{lemma:probability_more_concentrated_in_cut} has a nice corollary: 
+
+\begin{corollary}
+\label{corollary:cut_and_cut_tilde_are_the_same}
+    the sweep cut $S_j(\vec{p}_{t+dt}) = S_j(\tilde{\vec{p}}_{t+dt})$
+\end{corollary}
+
+\begin{proof}
+    If $v \in S_j(\vec{p}_{t+dt})$, then it means that there are $n - j$ vertices $u\in \bar{S}_j(\vec{p}_{t+dt})$ with smaller $\frac{p_{t+dt}(u)}{d(u)} \leq \frac{p_{t+dt}(v)}{d(v)}$ value. Due to lemma \ref{lemma:probability_more_concentrated_in_cut}, the value of $\frac{\tilde{p}_{t+dt}(v)}{d(v)} \geq \frac{p_{t+dt}(v)}{d(v)}$, and at the same time for all other entries $n-j$ vertices $u \notin S_j(\vec{p}_{t+dt})$, $\frac{\tilde{p}_{t+dt}(u)}{d(u)} \leq \frac{p_{t+dt}(u)}{d(u)}$. This clearly means that there are still at least $n-j$ vertices $u$ such that $\frac{\tilde{p}_{t+dt}(v)}{d(v)} \geq \frac{\tilde{p}_{t+dt}(u)}{d(u)}$, and hence $v \in S_j(\tilde{\vec{p}}_{t+dt})$.
+\end{proof}
+
+With these two claims at hand, it is now possible to study the rate of convergence of the Lovasz-Simonovits curve $I_t$, $I_{t+dt}$ and $\tilde{I}_{t+dt}$ that are respectively computed using $\vec{p}_t$, $\vec{p}_{t+dt}$ and $\tilde{\vec{p}}_{t+dt}$. First, we can see that if $k$ is the number of edges incident on the cut $S_j(\vec{p}_{t+dt})$ in the edge set $E_{t+dt}$, then it must be the case that $k$ is also the number of edges incident on $S_j(\vec{p}_{t+dt})$ on both edge sets $E_t$ and $\tilde{E}_{t+dt}$: in fact, we ensured adding and removing carefully self loops that the degree of every vertex remains unchanged in all three edge sets. 
+
+With these observations at hand, we are going to claim all meaningful lemmas in order to prove that the mixing happens in logarithmic time. Proofs will be presented further in the section.
+
+\begin{lemma}
+\label{lemma:It_tilde_smaller_than_It}
+    When $k=\text{vol}(S_j(\vec{p}_{t+dt}))$ then
+    $I_{t+dt}(k) \leq \tilde{I}_{t+dt}(k)$
+\end{lemma}
+
+\begin{proof}
+    \begin{align}
+        I_{t+dt}(k) & = p_{t+dt}(S_j(\vec{p}_{t+dt})) && \text{by definition of } I_{t+dt} \\ 
+        & \leq \tilde{p}_{t+dt}(S_j(\vec{p}_{t+dt})) && \text{Lemma \ref{lemma:probability_more_concentrated_in_cut}} \\
+        & = \tilde{p}_{t+dt}(S_j(\tilde{\vec{p}}_{t+dt})) && \text{Corollary \ref{corollary:cut_and_cut_tilde_are_the_same}} \\
+        & = \tilde{I}_{t+dt}(k) && \text{definition of } \tilde{I}_{t+dt}
+    \end{align}
+\end{proof}
+
+This simply implies that if we are able to find an upper bound on the curve $\tilde{I}_{t+dt}(k)$ (for which, conveniently, we know the conductance $\phi$ of the sweep cut $S_j(\vec{p}_{t+dt})$ on the underlying collapsed graph $\tilde{E}_t$), then such upper bound also holds for the curve $I_{t+dt}$.
+
+Next lemma is key to the Lovasz-Simonovits mixing result: in particular, it says that the curve $\tilde{I}_{t+dt}$ decreases point-wise with respect to the curve $I_t$ to be below a large chord: 
+
+\begin{lemma}
+\label{lemma:strong_concavity}
+    When the conductance of the sweep cut $S_j(\vec{p}_{t+dt})$ in the graph $\tilde{G}_t$ is $\phi$ (or larger), then:
+    \begin{equation}
+        \tilde{I}_{t+dt}(k) \leq (1 - 2dt) I_t(k) + 2dt\left(\frac{1}{2} I_t(k - \phi \hat{k}) + \frac{1}{2}I_t(k + \phi \hat{k})\right)
+    \end{equation}
+    Where $\hat{k} := \min(k, \text{vol}(H)-k)$
+\end{lemma}
+
+An immediate corollary of Lemma \ref{lemma:strong_concavity} and Lemma \ref{lemma:It_tilde_smaller_than_It} is:
+
+\begin{corollary}
+\label{corollary:ls_curve_convergence_speed}
+    \begin{equation}
+        I_{t+dt}(k) \leq (1 - 2dt) I_t(k) + 2dt\left(\frac{1}{2} I_t(k - \phi \hat{k}) + \frac{1}{2}I_t(k + \phi \hat{k})\right)
+    \end{equation}
+\end{corollary}
+
+The consequence of the Corollary \ref{corollary:ls_curve_convergence_speed} is the final mixing theorem:
+
+\begin{theorem}
+\label{theorem:mixing_theorem}
+    If $H$ is a hypergaph with conductance at least $\phi$, then $\forall k \in [0, \text{vol}(H)]$ and $\forall t \geq 0$
+    \begin{equation}
+        I_t(k) \leq \sqrt{\hat{k}} e^{-\phi^2 t} + \frac{k}{\text{vol}(H)}
+    \end{equation}
+\end{theorem}
+
+With Theorem \ref{theorem:mixing_theorem} at hand, it is a simple corollary to check that the mixing time is indeed exponentially fast in $t$:
+
+\begin{corollary}
+    In order to mix in hypergraph $H$ with conductance of sweep cuts $\geq \phi$ (namely, make sure that $|\sum_{v\in S} (p_t(v) - \pi(v))| \leq \frac{1}{\text{poly}(n)}$, $\forall S\subseteq V$), we need a time $t = O\left(\frac{\log(\text{vol}(S))}{\phi^2}\right)$.
+\end{corollary}
+
+In the next subsection, we are going to present the proof of the Lovasz-Simonovits mixing result (namely, Lemma \ref{lemma:strong_concavity} and Theorem \ref{theorem:mixing_theorem}) for non $d$-regular hypergraphs.
+
+\subsection{Lovasz-Simonovits for small time-steps in multigraphs}
+
+Let $G$ be a multigraph with conductance of the sweep cut $S_j(\vec{p}_{t+dt})$ of size $k$ at least $\phi$ (it is, indeed, the graph $\tilde{G}_t = (V, \tilde{E}_t)$), and define its transition probability matrix $M = (1 - dt) I + dt A D^{-1}$. Finally, we evolve the probability vector with the rule $\vec{p}_{t+dt} = M \vec{p}_t$. 
+
+% Notice that having such transition probability matrix is equivalent to performing a single step random walk in the following weighted graph $G'$: every vertex $v$ has $d(v)$ outgoing edges in $G$. We call these edges \textit{non-trivial}. To the $d(v)$ non-trivial edges going out of any vertex $v$, we assign a weight $dt\frac{p_t(v)}{d(v)}$ (which is the probability of following any non trivial edge according to the transition probability matrix $M$). In order to model the term $(1-dt)I$, instead, we simply add to any vertex $v$ $\frac{1-dt}{dt} d(v)$ self loops of weight $dt\frac{p_t(v)}{d(v)}$. Notice that in this way, both non-trivial edges and self loops starting from the same vertex $v$ have the same weight $dt\frac{p_t(v)}{d(v)}$, and the total volume of self loops is $\frac{1-dt}{dt}d(v) dt \frac{p_t(v)}{d(v)} = (1-dt)p_t(v)$ as desired.
+
+Notice that having such transition probability matrix is equivalent to assigning to each outgoing edge (we call these edges \textit{non trivial}) from any vertex $v$ a weight $dt\frac{p_t(v)}{d(v)}$ (so that, a $dt$ fraction of the probability $p_t(v)$ remains on such outgoing edges), and the remaining $(1-dt)$ fraction of the probability divided into $\frac{1-dt}{dt} d(v)$ additional self loops (in this way, every self loops has the same weight as the non-trivial edges: $\frac{1-dt}{dt} d(v) \cdot dt\frac{p_t(v)}{d(v)} = (1-dt) p_t(v)$). The key point is that for every edge going out of any vertex $v$, both self loops and non-trivial edges have the same weight $dt\frac{p_t(v)}{d(v)}$. Notice that the edge weight is different when the starting vertex changes.
+
+We can now prove the convergence claim:
+
+\begin{lemma}
+\label{lemma:strong_concavity_2}
+    When the multigraph $G$ has expansion of the sweep cut $S_j(\vec{p}_{t+dt}) \geq \phi$, and  $\text{vol}(S_j(\vec{p}_{t+dt})) = k$, then 
+    \begin{equation}
+        I_{t+dt}(k) \leq (1-2dt)I_t(k) + 2dt\left(\frac{1}{2}I_t(k - \phi\hat{k}) + \frac{1}{2}I_t(k + \phi\hat{k})\right)
+    \end{equation}
+\end{lemma}
+
+Notice that, although the naming convention can be misleading, Lemma \ref{lemma:strong_concavity_2} is equivalent to Lemma  \ref{lemma:strong_concavity} rather than Corollary \ref{corollary:ls_curve_convergence_speed}: in fact, by construction, only the graph $\tilde{G}_t$ has conductance on the sweep cut $S_j(\vec{p}_{t+dt})$ $\geq \phi$.
+
+\begin{proof}
+    To begin with, we can see that
+    \begin{align}
+        I_{t+dt}(k) &= \sum_{u\in S_j(\vec{p}_{t+dt})} p_{t+dt}(u) \\
+        & = \sum_{(u,v) \text{ : } u \in S_j(\vec{p}_{t+dt})} p_{t+dt}(u,v) \\
+        & = \sum_{(v,u): u\in S_j(\vec{p}_{t+dt})} p_t(v, u)  && \text{the reversed edges} \label{eq:I_t_equivalence_probability}
+    \end{align}
+    
+    
+    Now, let us call the set of reversed edges $W$: we can further partition it into four sets:
+    \begin{align*}
+        W_1 & := \{(v, u) : u, v\in S_j(\vec{p}_{t+dt}\} \\
+        W_2 & := \{(v, u) : v\notin S_j(\vec{p}_{t+dt}), u\in S_j(\vec{p}_{t+dt}) \} \\
+        W_3 & := \{(v, v) : v\in S_j(\vec{p}_{t+dt}) \land \text{vol}(W_3) = dt \cdot k \} \\
+        W_4 & := \{(v, v) : v\in S_j(\vec{p}_{t+dt}) \land \text{vol}(W_4) = (1 - 2dt) k\}
+    \end{align*}
+    
+    Notice that self loops are partitioned in two groups: out of the edges incident to $S_j(\vec{p}_{t+dt})$ (with total volume $k$), we know that $(1-dt)k$ are self loops, and the remaining $dt \cdot k$ are "non-trivial" edges (there can be also self loops among the non-trivial edges, in this case they belong to $W_1$). Then, for every node $v \in S_j(\vec{p}_{t+dt})$ there are $d(v)$ non trivial edges, and $\frac{1-dt}{dt}d(v)$ self loops. So, for every node we put $\frac{1-2dt}{dt}d(v)$ self loops in $W_4$, and the remaining $d(v)$ self loops in $W_3$ (notice that the sum is $\frac{1-2dt}{dt}d(v) + d(v) = \frac{1-dt}{dt} d(v)$, namely the total number of self loops going out of $v$). Notice that here the assumption $dt \leq \frac{1}{2}$ comes into play: otherwise, the quantity $1-2dt$ would be negative.
+    
+    Out of the total volume $k$, then, we have that $k(dt)$ resides in non-trivial edges ($W_1 \cup W_2$), $k(dt)$ of it is in self loops $W_3$ and the remaining $(1-2dt)k$ is in self loops in $W_4$. Also notice that all edges going out of the same vertex $u$ have the same weight $\frac{p_t(u)}{d(u)}dt$.
+    
+    In the remaining of the proof, we are going to prove that:
+    
+    \begin{align}
+        p_t(W_4) & \leq (1-2dt)I_t(k) \label{eq:W_equations_1}\\
+        p_t(W_1) & \leq dt I_t\left(k - \frac{\text{vol}(W_2)}{dt}\right) \label{eq:W_equations_2} \\
+        p_t(W_2 \cup W_3) & \leq  dt I_t\left(k + \frac{\text{vol}(W_2)}{dt}\right) \label{eq:W_equations_3}
+    \end{align}
+    
+    To understand why proving Equations \ref{eq:W_equations_1}, \ref{eq:W_equations_2} and \ref{eq:W_equations_3} is enough to conclude the theorem, it is sufficient to notice that according to Equation \ref{eq:I_t_equivalence_probability} we get that
+    
+    \begin{align}
+        I_{t+dt}(k) & = \sum_{i=1}^{k} p_t(v_i, u_i) \\ 
+        & = p_t(W_1) + p_t(W_2 \cup W_3) + p_t(W_4) \\
+        & \leq dt I_t\left(k - \frac{\text{vol}(W_2)}{dt}\right) + dtI_t\left(k + \frac{\text{vol}(W_2)}{dt}\right) + (1 - 2dt) I_t(k)
+    \end{align}
+    
+    Finally, due to the fact that $\text{vol}(W_2)$ is nothing but the volume of the edges cutting the sweep cut $S_j(\vec{p}_{t+dt})$, we know by the hypothesis about the conductance of the sweep cut being $\geq \phi$ that among the $k dt$ volume of non-trivial edges, a fraction of the volume $\geq \phi \hat{k} dt$ is made of crossing edges, where $\hat{k}:= \min(k, \text{vol}(G) - k)$: hence $\frac{\text{vol}(W_2)}{dt} \geq \hat{k} \phi$. To conclude, we take advantage of the concavity of the curve $I_t$: in fact $I_t(x + y) + I_t(x - y) \leq I_t(x + z) + I_t(x - z)$ when $z \leq y$. This observation finally yields:
+    
+    \begin{align}
+        I_{t+dt}(k) & \leq dt I_t\left(k - \frac{\text{vol}(W_2)}{dt}\right) + dtI_t\left(k + \frac{\text{vol}(W_2)}{dt}\right) + (1 - 2dt) I_t(k) \\ 
+        & \leq dt I_t\left(k - \phi \hat{k}\right) + dtI_t\left(k + \phi \hat{k}\right) + (1 - 2dt) I_t(k)
+    \end{align}
+    
+    It is left to prove the three bounds in Equations \ref{eq:W_equations_1}, \ref{eq:W_equations_2} and \ref{eq:W_equations_3}. We start with Equation \ref{eq:W_equations_1}: we know that by construction, every vertex has a fraction $(1-2dt)$ of its weight in self loops that belong to $W_4$: 
+    \begin{align}
+        p_t(W_4) & = \sum_{v\in S_j(\vec{p}_{t+dt}} p_t(v) (1-2dt) \\
+        & = (1-2dt) \sum_{v\in S_j(\vec{p}_{t+dt}} p_t(v) \\
+        & = (1-2dt) I_t(k) && \text{vol}(S_j(\vec{p}_{t+dt})) = k
+    \end{align}
+    
+    We now prove Equation \ref{eq:W_equations_2}: $p_t(W_1) \leq dt I_t\left(k - \frac{\text{vol}(W_2)}{dt}\right)$: first, notice that $\text{vol}(W_1) + \text{vol}(W_2) = dt \cdot k$. Moreover, for every node $v$ there are at most $d(v)$ edges belonging to $W_1$. Since the number of self loops in every node is $\frac{1-dt}{dt}d(v)$, this means that for every edge in $W_1$ there are at least $\frac{1-dt}{dt}$ self loops starting from the same vertex (and hence with the same weight $\frac{p_t(v)dt}{d(v)}$). Calling $W_1^{\text{charge}}$ this set of self loops, then we know that $p_t(W_1^{\text{charge}}) = \frac{1-dt}{dt}p_t(W_1)$ (because for every edge in $W_1$ we have $\frac{1-dt}{dt}$ many self loops with the same weight, which further means that 
+    \begin{align}
+        p_t(W_1 \cup W_1^{\text{charge}}) & = p_t(W_1) + \frac{1 - dt}{dt} p_t(W_1) \\
+        & = \frac{1}{dt} p_t(W_1)
+    \end{align}
+    Which implies that 
+    \begin{align}
+        p_t(W_1) & = dt p_t(W_1 \cup W_1^{\text{charge}}) \\
+        & \leq dt I_t(\text{vol}(W_1) + \text{vol}(W_1^{\text{charge}})) \\
+        & = dt I_t(dt \cdot k - \text{vol}(W_2) + \frac{1-dt}{dt}(dt \cdot k - \text{vol}(W_2))) \\
+        & = dt I_t\left(k - \frac{\text{vol}(W_2)}{dt}\right)
+    \end{align}
+    
+    To conclude, let us prove the last Equation \ref{eq:W_equations_3}: we use the same trick, and try to find some duplicate edges with equal weights as the ones in $W_2 \cup W_3$.
+    In particular, we know for sure that every node $v\in S_j(\vec{p}_{t+dt})$ has a fraction of edges $dt$ as self loops in $W_3$, and a fraction of self loops $(1-2dt)$ in $W_4$ with the same weight. This means that for every self loop in $W_3$ there are $\frac{1-2dt}{dt}$ self loops in $W_4$ with equal weight (in fact, the volume of $W_3$ times $\frac{1-2dt}{dt}$ is $k \cdot dt \frac{1-2dt}{dt} = k (1-2dt)$ which is the volume of $W_4$). In addition, since the volume of $W_3$ is $dt k$, which is the same as the volume of $W_1 \cup W_2$, then we know for sure that every self loop in $W_3$ also has at least one corresponding "non-trivial" edge with equal weight. We add both self loops and non-trivial edges to $W_3^{\text{charge}}$, which has weight $|W_3|\left(\frac{1-2dt}{dt} + 1\right) = |W_3|\left(\frac{1-dt}{dt}\right)$. Regarding $W_2$, instead, since all edges of $W_2$ start outside $S_j(\vec{p}_{t+dt})$, then we know for sure that for every edge in $W_2$ there is a number of self loops as large as $\frac{1-dt}{dt}$, which certainly is completely disjoint from the self loops in $W_3^{\text{charge}}$ due to the fact that all self loops in $W_3^{\text{charge}}$ are instead inside $S_j(\vec{p}_{t+dt})$. Let us call this set of self loops $W_2^{\text{charge}}$. This leads us to the result:
+    \begin{align}
+        \text{vol}(W_3 \cup W_3^{\text{charge}}) & = \text{vol}(W_3)\left(1 + \frac{1-dt}{dt}\right) = \frac{1}{dt}\text{vol}(W_3) \\
+        \text{vol}(W_2 \cup W_2^{\text{charge}}) & =  \text{vol}(W_2)\left(1 + \frac{1-dt}{dt}\right) = \frac{1}{dt}\text{vol}(W_2)
+    \end{align}
+    And hence
+    \begin{align}
+        p_t(W_2 \cup W_3) & = \frac{1}{dt} p_t(W_2 \cup W_2^{\text{charge}} \cup W_3 \cup W_3^{\text{charge}}) \\
+        & \leq \frac{1}{dt}I_t(\text{vol}(W_2 \cup W_2^{\text{charge}}) + \text{vol}(W_3\cup W_3^{\text{charge}})) \\ 
+        & = \frac{1}{dt} I_t\left(\frac{1}{dt}\text{vol}(W_2) + \frac{1}{dt} \text{vol}(W_3)\right) \\
+        & = \frac{1}{dt} I_t\left(\frac{1}{dt}\text{vol}(W_2) + k\right) \\
+    \end{align}
+    Where the last inequality follows from the fact that $\text{vol}(W_3) = dt \cdot k$.
+\end{proof}
+
+With this recursive upper bound at hand, we are able to prove the mixing result:
+
+\begin{lemma}
+\label{lemma:fast_convergence}
+    Let's define the function $R_t(k)$ as follows:
+    \begin{align}
+        R_0(k) & = \min(\sqrt{k}, \sqrt{\text{vol}(G) - k}) \\
+        R_{t+dt}(k) & =
+            2dt \left(\frac{1}{2} R_t(k - \phi \hat{k}) + \frac{1}{2}R_t(k+\phi \hat{k})\right) + (1 - 2dt) R_t(k)
+    \end{align}
+    Then $\forall k$
+    \begin{equation}
+        I_t(k) \leq R_t(k)
+    \end{equation}
+    and 
+    \begin{equation}
+        R_t(k) \leq \sqrt{\hat{k}} e^{-\frac{t \phi^2}{4}} + \frac{k}{\text{vol}(G)}
+    \end{equation}
+\end{lemma}
+
+This final lemma is what is needed to conclude mixing in logarithmic time for non $d$-regular hypergraphs. Notice that, in the case of $d$-regular hypergraphs, we can re-define $R_0(k) = \min\left(\sqrt{\frac{k}{d}}, \sqrt{\frac{\text{vol}(H)-k}{d}}\right)$ in order to achieve the desired result as in Theorem \ref{theorem:mixing_theorem_regular_hypergraphs}. For irregular hypergraphs, when the starting probability vector is $\chi_v$ for some $v\in V$, then we can also use a similar bound using instead of $d$ the quantity $d(v)$, as it will be described later in Section \ref{subsec:choose_starting_vertex_random}. 
+
+Let us now explain the proof. 
+
+\begin{proof}
+    It is easy to check by induction that $I_t(k) \leq R_t(k)$, $\forall k \in [0, \text{vol}(G)]$.
+    To see the base case, $R_0(k) \geq 1$ when $k \geq 1$, whereas $I_t(k) \leq 1$ $\forall k, t$ by its own definition. The only thing to check is when $k\leq 1$: in such case, we know that the angular coefficient of $I_t(k)$ cannot be larger than 1 (when the probability vector $p_0$ is concentrated in a vertex with degree 1), and the square root function lies above $y=x$ in the interval $[0,1]$. For the inductive case, it is enough to see that the definition of $R$ makes it trivial to achieve the desired upper bound:
+    \begin{align}
+        I_{t+dt}(k) & \leq (1-2dt)I_t(k) + dt\left(\frac{1}{2}I_t(k - \phi \hat{k}) + \frac{1}{2}I_t(k+\phi\hat{k})\right) && \text{Lemma \ref{lemma:strong_concavity_2}} \\
+        & \leq (1-2dt)R_t(k) + dt\left(\frac{1}{2}R_t(k - \phi \hat{k}) + \frac{1}{2}R_t(k+\phi\hat{k})\right) && \text{induction} \\ 
+        & = R_{t+dt}(k)
+    \end{align}
+    
+    In order to prove that $R_t(k) \leq \sqrt{\hat{k}} e^{-\frac{\phi^2 t}{4}} + \frac{k}{\text{vol}(G)}$, we proceed once again by induction: when $t=0$, then $R_0(k) = \sqrt{\hat{k}} \leq \sqrt{\hat{k}} e^0 + \frac{k}{\text{vol}(G)}$. 
+    For the inductive case:
+    \begin{align}
+        R_{t+dt}(k) & = 2dt\left(\frac{1}{2}R_t(k - \phi\hat{k}) + \frac{1}{2}R_t(k+\phi\hat{k})\right) + (1-2dt)R_t(k) \\ 
+        &\leq 2dt \left(\frac{1}{2}\left[\sqrt{g(k - \hat{k}\phi)} e^{-\frac{t\phi^2}{4}}\right] + \frac{1}{2}\left[\sqrt{g(k + \phi\hat{k})} e^{-\frac{\phi^2 t}{4}}\right] \right) + \frac{2dt \cdot k}{\text{vol}(G)} + \nonumber \\ 
+        &\qquad (1-2dt)\left[ \sqrt{\hat{k}}e^{-\phi^2 t} +\frac{k}{\text{vol}(G)} \right]
+        \label{equation:r_function_inequality_to_continue}
+    \end{align}
+    Where the function $g()$ is nothing but the hat function: $g(x) := \min(x, \text{vol}(G) - x)$. 
+    A short analysis allows us to conclude that 
+    \begin{equation}
+    \label{equation:g_function_ltw_hat_function}
+        \sqrt{g(k - \phi \hat{k})} + \sqrt{g(k + \phi \hat{k})} \leq \sqrt{\hat{k}}\left(\sqrt{1 - \phi} + \sqrt{1 + \phi}\right)
+    \end{equation}
+    We proceed to prove the inequality \ref{equation:g_function_ltw_hat_function} by cases:
+    \begin{itemize}
+        \item $k + \phi \hat{k} \leq \frac{1}{2}\text{vol}(G)$: in this case, $\hat{k} = k$ and we have that 
+        \begin{equation}
+            \sqrt{g(k - \phi\hat{k})} + \sqrt{g(k + \phi\hat{k})} = \sqrt{\hat{k} - \phi\hat{k}} + \sqrt{\hat{k} + \phi\hat{k}}
+        \end{equation}
+        
+        \item $k\leq\frac{1}{2}\text{vol}(G) \land k + \hat{k}\phi \geq \frac{1}{2}\text{vol}(G)$: Also here it holds that $k = \hat{k}$, and 
+        \begin{align} 
+            \sqrt{g(k - \phi\hat{k})} + \sqrt{g(k+\phi\hat{k})} & = \sqrt{\hat{k} - \phi\hat{k}} + \sqrt{g(\hat{k} + \phi\hat{k})} \\ 
+            & = \sqrt{\hat{k} - \phi\hat{k}} + \sqrt{\text{vol}(G) - (\hat{k} + \phi\hat{k})} \\
+            & \leq \sqrt{\hat{k} - \phi\hat{k}} + \sqrt{\hat{k} + \phi\hat{k}}
+        \end{align}.
+        
+        \item $k \geq \frac{1}{2}\text{vol}(G) \land k - \phi\hat{k} \leq \frac{1}{2}\text{vol}(G)$: $\hat{k} = \text{vol}(G) - k$ and it must hold that:
+        \begin{align}
+            \sqrt{g(k - \phi\hat{k})} + \sqrt{g(k+\phi\hat{k})} & = 
+            \sqrt{k - \hat{k}\phi} + \sqrt{\text{vol}(G) - k - \hat{k}\phi} \\
+            & = \sqrt{k - \hat{k}\phi} + \sqrt{\hat{k} - \phi\hat{k}} \\
+            & \leq \sqrt{\hat{k} + \phi\hat{k}} + \sqrt{\hat{k} - \phi\hat{k}}
+        \end{align}
+        In fact $k - \hat{k}\phi \leq \frac{1}{2}\text{vol}(G)$ and $\hat{k} + \phi\hat{k} = (\text{vol}(G) - k) + \phi\hat{k} = \text{vol}(G) - (k - \phi\hat{k}) \geq \frac{1}{2}\text{vol}(G)$.
+        
+        \item $k \geq \frac{1}{2}\text{vol}(G) \land k - \phi\hat{k} \geq \frac{1}{2}\text{vol}(G)$: then $\hat{k} = \text{vol}(G) - k$ and
+        \begin{align}
+            \sqrt{g(k - \phi\hat{k})} + \sqrt{g(k+\phi\hat{k})} & =
+            \sqrt{\text{vol}(G) - (k - \phi\hat{k})} + \sqrt{\text{vol}(G) - (k + \phi\hat{k})} \\ 
+            & = \sqrt{\hat{k} + \hat{k}\phi} + \sqrt{\hat{k} - \hat{k}\phi}.
+        \end{align}
+    \end{itemize}
+    With the claim $\sqrt{g(k - \phi\hat{k})} + \sqrt{g(k + \phi\hat{k})} \leq \sqrt{\hat{k}}(\sqrt{1 - \phi} + \sqrt{1+\phi})$ at hand, we can continue the inequality  \ref{equation:r_function_inequality_to_continue} (also taking advantage of the Taylor expansion $\frac{1}{2}(\sqrt{1-\phi} + \sqrt{1+\phi}) \leq \left(1-\frac{\phi^2}{8}\right)$) which finally yields: 
+    
+    \begin{align}
+        R_{t+dt}(k) & \leq 2dt \left(\frac{1}{2}\left[\sqrt{g(k - \hat{k}\phi)} e^{-\frac{t\phi^2}{4}}\right] + \frac{1}{2}\left[\sqrt{g(k + \phi\hat{k})} e^{-\frac{\phi^2 t}{4}}\right] \right) + \frac{2dt \cdot k}{\text{vol}(G)} + \nonumber \\ 
+        &\qquad (1-2dt)\left[ \sqrt{\hat{k}}e^{-\phi^2 t} +\frac{k}{\text{vol}(G)} \right] \\
+        & \leq 2dt \left(\sqrt{\hat{k}}\left(\frac{1}{2}\sqrt{1 - \phi} + \frac{1}{2}\sqrt{1+\phi}\right) \right) e^{\frac{-t\phi^2}{4}} + \nonumber \\ 
+        &\qquad (1-2dt) \sqrt{\hat{k}}e^{-\frac{\phi^2 t}{4}} + \frac{k}{\text{vol}(G)} \\
+        & \leq 2dt \left(\sqrt{\hat{k}}\left(1 - \frac{\phi^2}{8}\right)\right) e^{-\frac{t \phi^2}{4}} + (1-2dt) \sqrt{\hat{k}}e^{-\frac{\phi^2 t}{4}} + \frac{k}{\text{vol}(G)} \\
+        & = \sqrt{\hat{k}} e^{-\frac{t\phi^2}{4}}\left(1 - \frac{dt\phi^2}{4}\right) + \frac{k}{\text{vol}(G)} \\
+        & \leq \sqrt{\hat{k}} e^{-\frac{\phi^2 (t+dt)}{4}{}} + \frac{k}{\text{vol}(G)}
+    \end{align}
+    
+    As desired.
+\end{proof}
+
+\end{document}
