@@ -78,7 +78,9 @@ if __name__=="__main__":
                         best_cut = cut
                         best_conductance = conductance
                     iteration += 1
-                    if np.max(np.abs(stationary_distribution - p_t_dt)) < 1 / n**2:
+                    if np.abs(
+                            np.sum(stationary_distribution[:n//2]) - np.sum(p_t_dt[:n//2])
+                        ) < 1 / n:
                         break
                     p_t = p_t_dt
                     assert np.abs(np.sum(p_t) - 1.0) < 0.00001
@@ -118,13 +120,13 @@ if __name__=="__main__":
     plt.ylabel("iterations")
     plt.title(title)
     # Plot the fit.
-    # x_fit = np.array([x[0] for x in data])
-    # if "cond" in args.dataset:
-    #     print("Hyperparam: {}".format(fit_function(np.log, x, y)))
-    #     y_fit = np.log(x_fit) * fit_function(np.log, x, y)
-    # else:
-    #     print("Hyperparameter: {}".format(fit_function(inv_sq, x, y)))
-    #     y_fit = inv_sq(x) * fit_function(inv_sq, x, y)
-    # plt.plot(x_fit, y_fit, label="fit")
+    x_fit = np.array([x[0] for x in data])
+    if "cond" in args.dataset:
+        print("Hyperparam: {}".format(fit_function(np.log, x, y)))
+        y_fit = np.log(x_fit) * fit_function(np.log, x, y)
+    else:
+        print("Hyperparameter: {}".format(fit_function(inv_sq, x, y)))
+        y_fit = inv_sq(x) * fit_function(inv_sq, x, y)
+    plt.plot(x_fit, y_fit, label="fit")
     # plt.show()
     plt.savefig("{}/{}".format(input_dataset_map[args.dataset], img_name))
