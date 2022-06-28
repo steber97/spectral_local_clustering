@@ -28,7 +28,7 @@ input_dataset_map = {
     "vol_10000": "datasets/hypergraphs/const_conductance_volume/const_volume/vol_10000"
 }
 
-REPETITIONS = 5
+REPETITIONS = 3
 MU = 0.5  # take cuts as large as 1/2 the volume (no local clustering)
 
 def inv_sq(x: float):
