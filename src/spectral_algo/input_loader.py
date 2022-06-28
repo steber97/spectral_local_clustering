@@ -47,9 +47,9 @@ def input_loader_hypergraph(dataset_name: str):
     if dataset_name == "n_400_d_10_r_8":
         from datasets.hypergraphs.d_regular_r_uniform.read_graph import read_graph as read_uniform_regular_hypergraph
         return read_uniform_regular_hypergraph("datasets/hypergraphs/d_regular_r_uniform/n_400_d_10_r_8.txt")
-
+    
+    from src.data_structures.hypergraph import HyperGraph
     if dataset_name == "graphprod" or dataset_name == "netscience" or dataset_name == "arxiv":
-        from src.data_structures.hypergraph import HyperGraph
         return HyperGraph.read_hypergraph(input_dataset_map[dataset_name])
 
     if "hypergraph_conductance_0_01_vol_10000_n_100" or "hypergraph_conductance_0_1_vol_10000_n_100" or "hypergraph_conductance_0_1_vol_1000_n_100" in dataset_name:
