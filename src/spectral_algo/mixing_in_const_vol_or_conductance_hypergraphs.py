@@ -120,13 +120,13 @@ if __name__=="__main__":
     plt.ylabel("iterations")
     plt.title(title)
     # Plot the fit.
-    x_fit = np.array([x[0] for x in data])
-    if "cond" in args.dataset:
-        print("Hyperparam: {}".format(fit_function(np.log, x, y)))
-        y_fit = np.log(x_fit) * fit_function(np.log, x, y)
-    else:
-        print("Hyperparameter: {}".format(fit_function(inv_sq, x, y)))
-        y_fit = inv_sq(x) * fit_function(inv_sq, x, y)
-    plt.plot(x_fit, y_fit, label="fit")
+    # x_fit = np.array([x[0] for x in data])
+    # if "cond" in args.dataset:
+    #     print("Hyperparam: {}".format(fit_function(np.log, x, y)))
+    #     y_fit = np.log(x_fit) * fit_function(np.log, x, y)
+    # else:
+    #     print("Hyperparameter: {}".format(fit_function(inv_sq, x, y)))
+    #     y_fit = inv_sq(x) * fit_function(inv_sq, x, y)
+    # plt.plot(x_fit, y_fit, label="fit")
     # plt.show()
     plt.savefig("{}/{}".format(input_dataset_map[args.dataset], img_name))
