@@ -1,0 +1,82 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{mystyle} % See mystyle.sty for packages and own commands
+\usepackage{subfiles}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+%------------------------------------------------------------
+%Title page
+\title[Clustering in Hypergraphs]{Local Clustering in Hypergraphs}
+\subtitle{(Mixing in irregular hypergraphs)}
+\titlegraphic{\includegraphics[height=1.0cm]{Logos/epfl_logo.png}}
+\author[Stefano Huber]{
+	Stefano Huber
+}
+\institute[]{Department of Computer Science \\EPFL}
+\date{\today}
+
+%---------------------TITLE PAGE---------------------------------------
+\begin{document}
+\begin{frame}
+\maketitle
+\end{frame}
+%------------------------------------------------------------
+
+\logo{\includegraphics[height=0.5cm]{Logos/epfl_logo.png}~%
+}
+
+%-------------------------------------------------------------------
+
+\begin{frame}
+\frametitle{Table of Contents}
+\tableofcontents
+\end{frame}
+
+%-------------------------------------------------------------------
+
+% INTRODUCTION
+%-------------------------------------------------------------------
+\section{Introduction}
+\subfile{Sections/introduction}
+
+% MIXING RESULT
+% ------------------------------------------------------------------
+\section{Mixing Result}
+\subfile{Sections/mixing_result}
+
+% Discussion
+% ------------------------------------------------------------------
+\section{Discussion}
+\subfile{Sections/discussion}
+
+% Experiments
+% ------------------------------------------------------------------
+\section{Experiments}
+\subfile{Sections/experiments}
+
+% Conclusion
+% ------------------------------------------------------------------
+\section{Conclusion}
+\subfile{Sections/conclusion}
+
+\begin{frame}{The end.}
+\begin{columns}
+\column{0.2\textwidth}k
+Thank you!
+    
+\end{columns}    
+    
+    
+\end{frame}
+
+%---------------------------------------------------------
+\section{References}
+\begin{frame}[allowframebreaks]\frametitle{References}
+        \bibliographystyle{apalike}
+        \bibliography{bib}
+\end{frame}
+
+
+\end{document}

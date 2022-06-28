@@ -1,0 +1,57 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{{\subfix{../Figures/}}}
+\begin{document}
+    \begin{frame}{Is this result as powerful as the one for graphs?} 
+		Here we state back to back the theorem for $d-regular$ hypergraphs and irregular hypergraphs:
+		\begin{block}{Mixing in $d$-regular hypergraphs}
+			$I_t(k) - \pi(S_j(\bold{p}_{t})) \leq \sqrt{\frac{k}{d}} e^{-\frac{t\hat{\phi}^2}{4}}$
+		\end{block}
+		\begin{block}{Mixing in irregular hypergraphs}
+			$I_t(k) - \pi(S_j(\bold{p}_{t})) \leq \sqrt{k} e^{-\frac{t\hat{\phi}^2}{4}}$
+		\end{block}
+	
+		Interestingly, the $d$ factor has dropped, but this might be an issue: in fact, $k$ can be as large as $O(n2^n)$ for hypergraphs (whereas $\frac{k}{d}$ is only $O(n)$). So, is it enough to have mixing time $t=O\left(\frac{\log(n)}{\hat{\phi}^2}\right)$ also for irregular hypergraphs?
+    \end{frame}
+
+	\begin{frame}{Conductance is $O(1)$, but mixing is $O(n)$}
+		\begin{lemma}
+			There exists a multigraph s.t. the conductance is $\frac{1}{2}$ but the mixing time is $O(n)$.
+		\end{lemma}
+		Here is an example: 
+		\begin{itemize}
+			\item Nodes $[1,n]$ in a straight path.
+			\item Edge $(i,i+1)$ has weight $w(i,i+1) = \sum_{j=0}^{i} w(i,i+1)$ so that weight doubles at every $i$.
+			\item Total graph volume: $2^{n-1}$.
+			\item Conductance is $\frac{1}{2}$.
+			\item Mixing time is $O(n)$ for a large fraction of nodes.
+		\end{itemize}
+		Can there be a hypergraph which gets collapsed into such an unfavourable multigraph?
+	\end{frame}
+
+	\begin{frame}{Two arguments for not having this issue in hypergraphs}
+		Let's discuss some arguments of why it is not possible to have a hypergraph that gets collapsed in such a way that the conductance is $O(1)$ but the mixing time is $O(n)$. This would be problematic because the approximation factor for the clustering algorithm would be $\hat{\phi} = O(\sqrt{\phi n})$ instead of $\hat{\phi}=O(\sqrt{\phi\log(n)})$
+		\begin{itemize}
+			\item argument 1, if the conductance is large, then the volume cannot be too large.
+				\begin{lemma}
+					\label{lemma:conductance_inv_prop_r_hat}
+					Given $\hat{r} = \text{avg}(|e|)_{e\in E}$ then
+					$\phi(H) \leq \frac{3}{\hat{r}}$
+				\end{lemma}
+			\item If the starting vertex is chosen at random w.p. proportional to $\pi$, then it holds $I_t(k)\leq \sqrt{\frac{k}{d(v_0)}}e^{-\frac{t\hat{\phi^2}}{4}}$ (Simple corollary of Lemma \ref{lemma:mixing_result}).
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Proof of Lemma \ref{lemma:conductance_inv_prop_r_hat}}
+		\begin{block}{Lemma \ref{lemma:conductance_inv_prop_r_hat}}
+			$\phi(H)\leq \frac{3}{\hat{r}}$ with $\hat{r}$ the average edge size.
+		\end{block}	
+		\begin{proof}
+			\begin{itemize}
+				\item Take random cuts $W$ of size $\text{vol}(W)\in[\frac{1}{3}\text{vol}(H), \frac{2}{3}\text{vol}(H)]$.
+				\item compute $\mathbb{E}[\phi(W)\mid \text{vol}(W)\in[\frac{1}{3},\frac{2}{3}]\text{vol}(H)] = \frac{3}{\hat{r}}$
+				\item Conclude that $\mathbb{P}(\{\phi(W)\leq \mathbb{E}[\cdot] \mid \text{vol}(W)\in[\frac{1}{3},\frac{2}{3}]\text{vol}(H)\}) > 0$
+				\item This implies that $\phi(W) \leq \frac{3}{\hat{r}}$.
+			\end{itemize}
+		\end{proof}
+	\end{frame}
+\end{document}
