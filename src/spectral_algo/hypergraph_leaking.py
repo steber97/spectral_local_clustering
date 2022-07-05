@@ -18,7 +18,8 @@ import os
 args = argparse.ArgumentParser("Perform local graph clustering algorithm")
 args.add_argument("--dataset", type=str, choices=[
     "hypergraph_conductance_0_01_vol_10000_n_100", "hypergraph_conductance_0_1_vol_10000_n_100",
-    "hypergraph_conductance_0_01_vol_1000_n_100", "cond_0_05", "vol_10000"
+    "hypergraph_conductance_0_01_vol_1000_n_100", "hypergraph_conductance_0_05_vol_10000_n_100",
+     "cond_0_05", "vol_10000"
 ])
 args = args.parse_args()
 
@@ -26,6 +27,7 @@ input_dataset_map = {
     "hypergraph_conductance_0_01_vol_10000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_01_vol_10000_n_100",
     "hypergraph_conductance_0_1_vol_10000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_1_vol_10000_n_100",
     "hypergraph_conductance_0_01_vol_1000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_01_vol_1000_n_100",
+    "hypergraph_conductance_0_05_vol_10000_n_100": "datasets/hypergraphs/r_uniform/hypergraph_conductance_0_05_vol_10000_n_100", 
     "cond_0_05": "datasets/hypergraphs/const_conductance_volume/const_conductance/cond_0_05",
     "vol_10000": "datasets/hypergraphs/const_conductance_volume/const_volume/vol_10000"
 }
@@ -98,8 +100,10 @@ if __name__ == "__main__":
             vol_vertices_ok = 0
             S_g = set()
             S_prime = set()
+            probability_leaking_per_t = [[0 for v in starting_vertices] for i in range(20)]
             for v in tqdm(starting_vertices):
                 algo = HyperGraphLocalClusteringDiscrete(hypergraph=hypergraph)
+                r = np.max([len(x.hypernodes) for x in hypergraph.hyperedges])
                 # Starting vector psi_S
                 p_t = np.zeros(n)
                 p_t[v] = 1.0
@@ -114,7 +118,7 @@ if __name__ == "__main__":
                 while True:
                     cut, conductance, p_t_dt, graph_t = algo.perform_one_iteration(hypergraph, p_t, MU)
                     t += 1  # TODO: Restore dt * 2
-                    if (t * conductance_true) >= 1/10:
+                    if t == 20:
                         break
                     cumulative_M_t_dt_DS = (D_S @ algo.M_t) @ cumulative_M_t_DS
                     cumulative_M_t_dt = algo.M_t @ cumulative_M_t
@@ -143,8 +147,9 @@ if __name__ == "__main__":
                             (1 - np.ones(n).T @ cumulative_M_t_dt_DS @ chi_v_2)
                     assert np.abs(val_eq - tot_sum) < 1e-6
                     probability_leaking = chi_S_bar.T @ cumulative_M_t_dt @ p_0
+                    probability_leaking_per_t[t][v] = probability_leaking
                     if probability_leaking >= \
-                        (t * conductance_true) + 1e-6:
+                        (t * conductance_true * r) + 1e-6:
                         # Vertex does not belong to S^g
                         v_in_S_g = False
                         break
@@ -158,3 +163,4 @@ if __name__ == "__main__":
             print("Vol S^g: {}".format(vol_vertices_ok))
             print("Vol S: {}".format(np.sum([hypergraph.deg_by_node[starting_vertices]])))
             assert vol_vertices_ok >= 0.5 * np.sum([hypergraph.deg_by_node[starting_vertices]])
+            
