@@ -4,7 +4,7 @@
     \begin{frame}{Why mixing is hard in hypergraphs?} 
         \begin{itemize}
         	\item Proving mixing in hypergraphs is harder because it is not possible to define an equivalent discrete diffusion process as a random walk.
-        	\item This is because the Laplacian is a non-linear operator, for $B_e$ the convex hull of $\{\chi_v-\chi_u : u,v\in e\}$:
+        	\item This is because the Laplacian is a non-linear operator, for $B_e$ the convex hull of $\{\chi_v-\chi_u : u,v\in e\}$ \cite{continuous_laplacian_hypergraph}:
 	        	\begin{columns}
 	        		\column{0.8\textwidth}
 	        		\begin{block}{Laplacian for hypergraphs}
@@ -19,8 +19,7 @@
 	\begin{frame}{Discrete diffusion process}
 		\begin{itemize}
 			\item Idea: turn the hypergraph laplacian into a singleton matrix by solving ties \textit{arbitrarily}. 
-			\item Question then is: is this simple resolution enough in order to obtain mixing?
-			\item Quick answer: yes, it is possible to prove that solving ties easily is enough in order to build a discrete diffusion process with good mixing properties.
+			\item Question: is this simple resolution of ties enough in order to obtain a diffusion process with good mixing properties?
 		\end{itemize}
 	\end{frame}
 
@@ -108,9 +107,9 @@
 				\end{itemize}
 				\item Then you prove the three bounds:
 					\begin{itemize}
-						\item $\bold{p}_{t+dt}(W_1) \leq dt \cdot I_t(\text{vol}(S_j(\bold{p}_{t+dt})) - \frac{\text{vol}(W_2)}{dt})$
-						\item $\bold{p}_{t+dt}(W_2\cup W_3)\leq dt\cdot I_t(\text{vol}(S_j(\bold{p}_{t+dt})) + \frac{\text{vol}(W_2)}{dt})$
-						\item $\bold{p}_{t+dt}(W_4) \leq (1-2dt) I_t(\text{vol}(W_4))$
+						\item $\tilde{\bold{p}}_{t+dt}(W_1) \leq dt \cdot I_t(\text{vol}(S_j(\bold{p}_{t+dt})) - \frac{\text{vol}(W_2)}{dt})$
+						\item $\tilde{\bold{p}}_{t+dt}(W_2\cup W_3)\leq dt\cdot I_t(\text{vol}(S_j(\bold{p}_{t+dt})) + \frac{\text{vol}(W_2)}{dt})$
+						\item $\tilde{\bold{p}}_{t+dt}(W_4) \leq (1-2dt) I_t(\text{vol}(W_4))$
 					\end{itemize}
 				\item and conclude by noticing that $I_t$ is concave, and $\frac{\text{vol}(W_2)}{dt} \geq \hat{\phi}\hat{k}$.
 			\end{itemize}
@@ -118,9 +117,9 @@
 	\end{frame}
 
 	\begin{frame}{Proof of Lemma \ref{lemma:mixing_result}}
-		\begin{lemma}
+		\begin{block}{Lemma \ref{lemma:mixing_result}}
 			$I_t(k) - \pi(S_j(\bold{p}_{t})) \leq \sqrt{\hat{k}} e^{-\frac{t\hat{\phi}^2}{4}}$
-		\end{lemma}
+		\end{block}
 		\begin{proof}
 			First, we define support function $$R_t(k) = \begin{cases} \sqrt{k} & t=0 \\ (1-2dt)R_{t-dt}(k) + dt(R_{t-dt}(k-\hat{\phi}\hat{k}) + R_{t-dt}(k+\hat{\phi}\hat{k})) & t>0
 			\end{cases}$$

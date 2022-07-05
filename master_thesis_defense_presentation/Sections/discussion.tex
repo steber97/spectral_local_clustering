@@ -2,16 +2,14 @@
 \graphicspath{{\subfix{../Figures/}}}
 \begin{document}
     \begin{frame}{Is this result as powerful as the one for graphs?} 
-		Here we state back to back the theorem for $d-regular$ hypergraphs and irregular hypergraphs:
-		\begin{block}{Mixing in $d$-regular hypergraphs}
-			$I_t(k) - \pi(S_j(\bold{p}_{t})) \leq \sqrt{\frac{k}{d}} e^{-\frac{t\hat{\phi}^2}{4}}$
-		\end{block}
+    	Although the mixing theorem found is the same as for graphs:
+    	
 		\begin{block}{Mixing in irregular hypergraphs}
 			$I_t(k) - \pi(S_j(\bold{p}_{t})) \leq \sqrt{k} e^{-\frac{t\hat{\phi}^2}{4}}$
 		\end{block}
 	
-		Interestingly, the $d$ factor has dropped, but this might be an issue: in fact, $k$ can be as large as $O(n2^n)$ for hypergraphs (whereas $\frac{k}{d}$ is only $O(n)$). So, is it enough to have mixing time $t=O\left(\frac{\log(n)}{\hat{\phi}^2}\right)$ also for irregular hypergraphs?
-    \end{frame}
+		In practice, for hypergraphs this result could be problematic, in fact $k$ can be as large as $O(n2^n)$, which means that the conductance approximation factor is $\hat{\phi} \leq \sqrt{n\phi^*}$ rather than $\leq \sqrt{\log(n)\phi^*}$.    
+	\end{frame}	
 
 	\begin{frame}{Conductance is $O(1)$, but mixing is $O(n)$}
 		\begin{lemma}
@@ -28,30 +26,12 @@
 		Can there be a hypergraph which gets collapsed into such an unfavourable multigraph?
 	\end{frame}
 
-	\begin{frame}{Two arguments for not having this issue in hypergraphs}
-		Let's discuss some arguments of why it is not possible to have a hypergraph that gets collapsed in such a way that the conductance is $O(1)$ but the mixing time is $O(n)$. This would be problematic because the approximation factor for the clustering algorithm would be $\hat{\phi} = O(\sqrt{\phi n})$ instead of $\hat{\phi}=O(\sqrt{\phi\log(n)})$
-		\begin{itemize}
-			\item argument 1, if the conductance is large, then the volume cannot be too large.
-				\begin{lemma}
-					\label{lemma:conductance_inv_prop_r_hat}
-					Given $\hat{r} = \text{avg}(|e|)_{e\in E}$ then
-					$\phi(H) \leq \frac{3}{\hat{r}}$
-				\end{lemma}
-			\item If the starting vertex is chosen at random w.p. proportional to $\pi$, then it holds $I_t(k)\leq \sqrt{\frac{k}{d(v_0)}}e^{-\frac{t\hat{\phi^2}}{4}}$ (Simple corollary of Lemma \ref{lemma:mixing_result}).
-		\end{itemize}
-	\end{frame}
-	
-	\begin{frame}{Proof of Lemma \ref{lemma:conductance_inv_prop_r_hat}}
-		\begin{block}{Lemma \ref{lemma:conductance_inv_prop_r_hat}}
-			$\phi(H)\leq \frac{3}{\hat{r}}$ with $\hat{r}$ the average edge size.
-		\end{block}	
-		\begin{proof}
-			\begin{itemize}
-				\item Take random cuts $W$ of size $\text{vol}(W)\in[\frac{1}{3}\text{vol}(H), \frac{2}{3}\text{vol}(H)]$.
-				\item compute $\mathbb{E}[\phi(W)\mid \text{vol}(W)\in[\frac{1}{3},\frac{2}{3}]\text{vol}(H)] = \frac{3}{\hat{r}}$
-				\item Conclude that $\mathbb{P}(\{\phi(W)\leq \mathbb{E}[\cdot] \mid \text{vol}(W)\in[\frac{1}{3},\frac{2}{3}]\text{vol}(H)\}) > 0$
-				\item This implies that $\phi(W) \leq \frac{3}{\hat{r}}$.
-			\end{itemize}
-		\end{proof}
+	\begin{frame}{An argument for not having this issue in hypergraphs}
+		Recall that the actual mixing theorem found with our analysis for the discrete diffusion process is
+		\begin{block}{Improved mixing theorem for irregular hypergraphs}
+			$I_t(k) - \pi(S_j(\bold{p}_t)) \leq \sqrt{\frac{k}{d(v_0)}}e^{-\frac{\hat{\phi}t}{
+			4}}$
+		\end{block}
+		This means that when the volume of the hypergraph is exponential, but also the degree of the starting vertex is exponential, then we still mix in logarithmic time. But, if the volume of the hypergraph is exponential, then the probability of picking as starting node a node with not exponential degree is basically zero.
 	\end{frame}
 \end{document}

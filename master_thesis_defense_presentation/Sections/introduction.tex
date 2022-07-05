@@ -14,7 +14,7 @@
 	            	\end{block}
 	            \end{columns}
             It measures how well inter-connected the cut $S$ is, and well separated from the rest of the graph.
-            \item In the Local Clustering problem, you want to find a cut $(S, \bar{S}) : S\subseteq V \land S\cup \bar{S}=V$ around a vertex $v\in S$ such that the conductance is at most a parameter $\phi$.
+            \item In the Local Clustering problem, you want to find a cut $(S, \bar{S}) : S\subseteq V \land S\cup \bar{S}=V$ around a vertex $v\in S$ such that the conductance is at most a parameter $\hat{\phi}$.
             \item The way to find good clusters is by studying mixing and leaking properties of random walks in a graph. 
         \end{itemize}
     \end{frame}
@@ -53,7 +53,7 @@
                         when $t\to\infty \implies \bold{p}_t\to \pi$
                     \end{block}
                 \end{columns}
-            \item Studying how fast the probability vector converges to stationary distribution is called \textit{mixing}, and it is done with the Lovasz-Simonovits curve.
+            \item Studying how fast the probability vector converges to stationary distribution is called \textit{mixing}, and it is done with the Lovasz-Simonovits curve \cite{Lovsz1993RandomWI}.
         \end{itemize}
         
     \end{frame}
@@ -129,22 +129,15 @@
             \item You pick a vertex $v$ at random according to the stationary distribution (with good probability it falls in $S^g$) and evolve the probability vector from $\bold{p}_0 = \chi_v$ for $t=\frac{1}{4\phi^*}$ iterations.
             \item By leaking: $p_t(S) - \pi(S) \geq 1 - t\phi^* - \frac{1}{2} \geq \frac{1}{4}$
             \item in contrast, by mixing $p_t(S) - \pi(S) \leq \sqrt{\text{vol}(S)}e^{-t\hat{\phi}^2}$
-            \item This allows to conclude that $\hat{\phi} \leq \sqrt{\log(n) \phi^*}$ \textit{not too far} from the original conductance.
+            \item This allows to conclude that $\hat{\phi} \leq \sqrt{\log(n) \phi^*}$ \textit{not too far} from the original conductance \cite{SpielmanClustering}.
         \end{itemize}
     \end{frame}
     
     \begin{frame}{Local clustering algorithm for hypergraphs}
         \begin{itemize}
             \item In order to find a proper clustering algorithm for hypergraphs, we need to generalize both mixing and leaking results to hypergraphs. 
-            \item Mixing:
-                \begin{columns}
-                    \column{0.7\textwidth}
-                    \begin{block}{Known mixing result for $d$-regular hypergraphs}
-                         $I_t(k) \leq \sqrt{\frac{k}{d}} e^{-\frac{t\hat{\phi}^2}{4}} + \frac{k}{\text{vol}(G)}$   
-                    \end{block}
-                \end{columns}
+            \item Mixing: there have attempts to prove mixing using continuous diffusion processes \cite{Takai_2020}.
             \item Leaking: no known leaking result as far as we know.
-            \item In next sections: we provide a generalization to non $d$-regular hypergraphs and a short discussion on leaking.
         \end{itemize}
     \end{frame}
 \end{document}
