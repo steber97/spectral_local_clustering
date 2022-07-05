@@ -77,8 +77,8 @@
 		
 		\begin{itemize}
 			\item $\forall e\in E$, if $(v_{\text{min}}^{t+dt}(e), v_{\text{max}}^{t+dt}(e))$ crosses the cut and $(v_{\text{min}}^{t}(e), v_{\text{max}}^{t}(e))$ does not, then either $(v_{\text{min}}^{t+dt}(e), v_{\text{min}}^{t}(e))$ or $(v_{\text{max}}^{t+dt}(e), v_{\text{max}}^{t}(e))$ also crosses the cut.
+			\includegraphics[width=0.8\textwidth]{Figures/G_tilde_creation}
 			\item We can add to $G_t$ the new crossing collapsed edge, and remove enough self loops so that the degree of $\tilde{G}_t$ is the same as in $H$.
-			\item Notice that in the graph $\tilde{G}_t$ the conductance of the sweep cut $S_j(\bold{p}_{t+dt})$ is $\phi(S_j(\bold{p}_{t+dt}))$, because we have ensured that every crossing hyperedge is collapsed into a crossing edge, and the degree has not changed.
 			\item We can now define $\tilde{\bold{p}}_{t+dt} = \tilde{M}_t \bold{p}_t$, and accordingly $\tilde{I}_{t+dt}$
 		\end{itemize}
 	\end{frame}

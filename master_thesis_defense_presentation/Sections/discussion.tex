@@ -15,7 +15,10 @@
 		\begin{lemma}
 			There exists a multigraph s.t. the conductance is $\frac{1}{2}$ but the mixing time is $O(n)$.
 		\end{lemma}
-		Here is an example: 
+		Here is an example: \\ 
+		\begin{center}
+		\includegraphics[width=0.5\textwidth]{Figures/path_graph}
+		\end{center}
 		\begin{itemize}
 			\item Nodes $[1,n]$ in a straight path.
 			\item Edge $(i,i+1)$ has weight $w(i,i+1) = \sum_{j=0}^{i} w(i,i+1)$ so that weight doubles at every $i$.
@@ -23,7 +26,6 @@
 			\item Conductance is $\frac{1}{2}$.
 			\item Mixing time is $O(n)$ for a large fraction of nodes.
 		\end{itemize}
-		Can there be a hypergraph which gets collapsed into such an unfavourable multigraph?
 	\end{frame}
 
 	\begin{frame}{An argument for not having this issue in hypergraphs}

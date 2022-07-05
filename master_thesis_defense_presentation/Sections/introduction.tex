@@ -59,39 +59,48 @@
     \end{frame}
     
     \begin{frame}{Lovasz-Simonovits curve}
-        \begin{itemize}
-            \item It is easy to define the Lovasz Simonovits curve using the definition of a sweep cut:
+            It is easy to define the Lovasz Simonovits curve using sweep cuts:
                 \begin{columns}
                     \column{0.8\textwidth}
                     \begin{block}{Sweep Cut}
                         $S_j(\bold{p}_t) = \{u\in V: \frac{p_t(u)}{d(u)} \text{ is maximized} \land |S_j(\bold{p}_t)| = j\}$
                     \end{block}
                 \end{columns}
-            \item LS curve: for $k = \text{vol}(S_j(\bold{p}_t))$ for some $j\in[0,n]$
-                \begin{columns}
-                    \column{0.4\textwidth}
-                    \begin{block}{Lovasz-Simonovits curve}
-                        $I_t(k) = \sum_{u\in S_j(\bold{p}_t)} p_t(u)$
-                    \end{block}
-                \end{columns}
-            \item The LS curve is concave, and it decreases with time until it converges to a straight line from $(0,0)$ to $(\text{vol}(G), 1)$: for all $t$ and $k\in[0,\text{vol}(G)]$
-                \begin{columns}
-                    \column{0.55\textwidth}
-                    \begin{block}{Lovasz-Simonovits curve is decreasing} 
-                        $I_{t+1}(k) \leq I_{t}(k)$
-                    \end{block}
-                \end{columns}
-        \end{itemize}
+            \begin{columns}
+            	\column{0.6\textwidth}
+    	        \begin{itemize}
+	            \item LS curve: for $k = \text{vol}(S_j(\bold{p}_t))$ for some $j\in[0,n]$
+	                \begin{columns}
+	                    \column{1\textwidth}
+	                    \begin{block}{Lovasz-Simonovits curve}
+	                        $I_t(k) = \sum_{u\in S_j(\bold{p}_t)} p_t(u)$
+	                    \end{block}
+	                \end{columns}
+	            \item Properties: concave, it decreases until it converges to a straight line:
+	                \begin{columns}
+	                    \column{1.\textwidth}
+	                    \begin{block}{Lovasz-Simonovits curve is decreasing} 
+	                        $I_{t+1}(k) \leq I_{t}(k)$
+	                    \end{block}
+	                \end{columns}
+		        \end{itemize}
+	        \column{0.4\textwidth}
+	        \raisebox{.0\height}{
+	        	\includegraphics[width=0.9\textwidth]{LS-curve_convergence}
+        	}
+    	\end{columns}
     \end{frame}
     
     \begin{frame}{1. Studying mixing with Lovasz-Simonovits curve}
         \begin{itemize}
             \item It is possible to study the mixing time of a random walk by studying how fast the LS curve converges to a straight line. In particular, in between time steps, the LS-curve decreases piece-wise to be below a \textit{large} chord depending on the conductance $\hat{\phi} = \min_{j\in[1,n], t}\phi(S_j(\bold{p}_t))$: $\forall k\in[0,\text{vol}(G)]$, and $\hat{k}:=\min(k, \text{vol}(G)-k)$
                 \begin{columns}
-                    \column{0.7\textwidth}
-                    \begin{block}{Rate of decrease of LS curve, depending on $\hat{\phi}$}
+                    \column{0.5\textwidth}
+                    \begin{block}{Recursive upper bound of LS curve}
                         $I_{t+1}(k) \leq \frac{1}{2}(I_t(k-\hat{\phi} \hat{k}) + I_t(k+\hat{\phi} \hat{k}))$
                     \end{block}
+                	\column{0.5\textwidth}
+                	\includegraphics[width=1.\textwidth]{ls_recursive_upper_bound}
                 \end{columns}
            \item This allows for exponentially fast convergence:
                 \begin{columns}
@@ -110,7 +119,7 @@
                 \begin{columns}
                     \column{0.7\textwidth}
                     \begin{block}{Leaking wrt optimal conductance $\phi^*$}
-                        $p_t(S) \geq 1 - t\phi^*(S)$
+                        $p_t(S) \geq 1 - t\phi(S)$
                     \end{block}
                 \end{columns}
             \item To conclude, it can also be proved that the volume of $S^g$ s.t. $\forall v\in S^g\subseteq S$ when $p_0 = \chi_v$ then $p_t(S)\geq 1-t\phi^*(S)$ is large:
