@@ -6,14 +6,17 @@
         \begin{block}{Leaking starting from the stationary distribution on a set $S$}
 			$\chi_S^T(\prod_{t'\leq t}(D_S M_{t'})) \psi_S \geq 1 - t\phi(S)$
         \end{block}
-    
-    	But, in contrast, it is not possible to prove it when starting from a single vertex:
     	
-    	\begin{block}{Leaking starting from centered distribution in one vertex}
-			When $S^g = \{v\in S: \chi_S^T (\prod_{t'\leq t}(D_S M_{t'})) \chi_v \geq 1-\phi(S) t\}$ then $\text{vol}(S^g) \ngeq \frac{1}{2}\text{vol}(H)$ 
-    	\end{block}
+    	\begin{columns}
+    		\column{0.5\textwidth}		
+	    		\includegraphics[width=0.8\textwidth]{leaking_hypergraph}
+    		\column{0.5\textwidth}
+    			When starting with probability centered in single vertices, instead, we count crossing hyperedges up to $r$ times (only for the first iteration though).
+		\end{columns}
     \end{frame}
+
+	\begin{frame}{Future work}
+		For $r$-uniform hypergraphs we could prove an improved mixing theorem by a factor $r$, and a worse leaking theorem by a factor $r$. This would give a proper local clustering algorithm with the same guarantees as in graphs.
+	\end{frame}
 	
-	\begin{frame}{Hypothesis for leaking}
-		Mildly speaking, when averaging (starting vertex $\psi_S$) we count every crossing hyperedge once. Instead, when starting from a single vertex $\chi_v$, we count every crossing edge up to $\approx r$ times (in case the graph is $r$-uniform). This introduces an additional $r$ factor in the leaking $p_t(S) \geq 1-r\phi t$, but still it is not possible to prove that this claim holds for $t>dt$	\end{frame}
 \end{document}

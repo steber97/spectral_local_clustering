@@ -2,13 +2,12 @@
 \graphicspath{{\subfix{../Figures/}}}
 \begin{document}
     \begin{frame}{Is this result as powerful as the one for graphs?} 
-    	Although the mixing theorem found is the same as for graphs:
     	
 		\begin{block}{Mixing in irregular hypergraphs}
-			$I_t(k) - \pi(S_j(\bold{p}_{t})) \leq \sqrt{k} e^{-\frac{t\hat{\phi}^2}{4}}$
+			$I_t(k) - \pi(S_j(\bold{p}_{t})) \leq \sqrt{\frac{k}{d(v_0)}} e^{-\frac{t\hat{\phi}^2}{4}}$
 		\end{block}
 	
-		In practice, for hypergraphs this result could be problematic, in fact $k$ can be as large as $O(n2^n)$, which means that the conductance approximation factor is $\hat{\phi} \leq \sqrt{n\phi^*}$ rather than $\leq \sqrt{\log(n)\phi^*}$.    
+		$\frac{k}{d(v_0)}$ can be as large as $\Omega(2^n)$, which means that even if the mixing time is large $\Omega(n)$, we can only have the guarantee that the output conductance is a constant.    
 	\end{frame}	
 
 	\begin{frame}{Conductance is $O(1)$, but mixing is $O(n)$}
@@ -34,6 +33,6 @@
 			$I_t(k) - \pi(S_j(\bold{p}_t)) \leq \sqrt{\frac{k}{d(v_0)}}e^{-\frac{\hat{\phi}t}{
 			4}}$
 		\end{block}
-		This means that when the volume of the hypergraph is exponential, but also the degree of the starting vertex is exponential, then we still mix in logarithmic time. But, if the volume of the hypergraph is exponential, then the probability of picking as starting node a node with not exponential degree is basically zero.
+		This means that when the volume of the hypergraph is exponential, then the probability of picking as starting node a vertex with non-exponential degree is very low.
 	\end{frame}
 \end{document}
