@@ -74,6 +74,7 @@ def check_rule_for_psi_S(hypergraph, n, starting_vertices, conductance_true):
 
 # It is assumed that the best bipartition is A,B with vertices (0,...,n/2-1), (n/2, ..., n)
 if __name__ == "__main__":
+    iterations = 30
     for file in os.listdir(input_dataset_map[args.dataset]):
         if ".txt" in file:
             print("Processing file {}".format(file))
@@ -100,7 +101,7 @@ if __name__ == "__main__":
             vol_vertices_ok = 0
             S_g = set()
             S_prime = set()
-            probability_leaking_per_t = [[0 for v in starting_vertices] for i in range(20)]
+            probability_leaking_per_t = [[0 for v in starting_vertices] for i in range(iterations)]
             for v in tqdm(starting_vertices):
                 algo = HyperGraphLocalClusteringDiscrete(hypergraph=hypergraph)
                 r = np.max([len(x.hypernodes) for x in hypergraph.hyperedges])
@@ -115,10 +116,11 @@ if __name__ == "__main__":
                 t = 0
                 chi_S = np.array([x < n//2 for x in range(n)])
                 chi_S_bar = np.ones(n) - chi_S
+                ls_curve = []
                 while True:
                     cut, conductance, p_t_dt, graph_t = algo.perform_one_iteration(hypergraph, p_t, MU)
                     t += 1  # TODO: Restore dt * 2
-                    if t == 20:
+                    if t == iterations:
                         break
                     cumulative_M_t_dt_DS = (D_S @ algo.M_t) @ cumulative_M_t_DS
                     cumulative_M_t_dt = algo.M_t @ cumulative_M_t
@@ -148,14 +150,25 @@ if __name__ == "__main__":
                     assert np.abs(val_eq - tot_sum) < 1e-6
                     probability_leaking = chi_S_bar.T @ cumulative_M_t_dt @ p_0
                     probability_leaking_per_t[t][v] = probability_leaking
-                    if probability_leaking >= \
-                        (t * conductance_true * r) + 1e-6:
-                        # Vertex does not belong to S^g
-                        v_in_S_g = False
-                        break
+                    # if probability_leaking >= \
+                    #     (1 - np.sum([hypergraph.deg_by_node[x] for x in starting_vertices])) / hypergraph.get_volume() :
+                    #     # (t * conductance_true * r) + 1e-6:
+                    #     # Vertex does not belong to S^g
+                    #     v_in_S_g = False
+                    #     break
                     cumulative_M_t_DS = cumulative_M_t_dt_DS
                     cumulative_M_t = cumulative_M_t_dt
+                    x_t, y_t, _ = graph_t.compute_lovasz_simonovits_curve(p_t)
+                    ls_curve.append((x_t, y_t))
                     p_t = p_t_dt
+                
+                for (x, y) in ls_curve:
+                    plt.plot(x, y)
+                plt.title("LS-curve convergence")
+                plt.xlabel("Volume (k)")
+                plt.ylabel("I_t(k)")
+                plt.show()
+                
                 if v_in_S_g:
                     vol_vertices_ok += hypergraph.deg_by_node[v]
                     S_g.add(v)
